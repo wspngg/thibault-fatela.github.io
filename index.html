@@ -24,8 +24,9 @@ body{
   color:var(--white);
   font-family:'DM Mono',monospace;
   overflow-x:hidden;
-  cursor:none;
+  cursor:auto;
 }
+body.custom-cursor, body.custom-cursor *{cursor:none!important}
 
 /* CURSOR */
 #c{position:fixed;width:6px;height:6px;background:var(--yellow);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s;clip-path:polygon(50% 0%,100% 100%,0% 100%)}
@@ -910,52 +911,65 @@ footer{
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// Cursor
-const c=document.getElementById('c'),cr=document.getElementById('cr');
-let mx=0,my=0,rx=0,ry=0,rot=0,lastMx=0,lastMy=0,vel=0;
-document.addEventListener('mousemove',e=>{
-  const dx=e.clientX-lastMx, dy=e.clientY-lastMy;
-  vel=Math.sqrt(dx*dx+dy*dy);
-  lastMx=mx; lastMy=my;
-  mx=e.clientX; my=e.clientY;
-  c.style.left=mx+'px'; c.style.top=my+'px';
-});
-(function animCR(){
-  rx+=(mx-rx)*.08; ry+=(my-ry)*.08;
-  rot+=vel*0.4; vel*=0.9;
-  cr.style.left=rx+'px';
-  cr.style.top=ry+'px';
-  cr.style.transform=`translate(-50%,-50%) rotate(${rot}deg)`;
-  const scale=1+Math.min(vel*0.015,0.5);
-  cr.querySelector('.cr-rect').style.strokeWidth=Math.min(vel*0.1+0.5,2);
-  requestAnimationFrame(animCR);
-})();
-// Hover effect
-document.querySelectorAll('a,button,.mission-block,.projet-row,.fact-row').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{
-    document.body.classList.add('cursor-hover');
-    cr.querySelector('.cr-rect').style.stroke='var(--orange)';
-    c.style.background='var(--orange)';
-  });
-  el.addEventListener('mouseleave',()=>{
-    document.body.classList.remove('cursor-hover');
-    cr.querySelector('.cr-rect').style.stroke='var(--yellow)';
-    c.style.background='var(--yellow)';
-  });
-});
+// Cursor — only on non-touch desktop
+try {
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (!isTouchDevice) {
+    document.body.classList.add('custom-cursor');
+    const c=document.getElementById('c'), cr=document.getElementById('cr');
+    c.style.opacity='1'; cr.style.opacity='1';
+    let mx=0,my=0,rx=0,ry=0,rot=0,vel=0,lastMx=0,lastMy=0;
+    document.addEventListener('mousemove',e=>{
+      const dx=e.clientX-lastMx, dy=e.clientY-lastMy;
+      vel=Math.sqrt(dx*dx+dy*dy);
+      lastMx=mx; lastMy=my;
+      mx=e.clientX; my=e.clientY;
+      c.style.left=mx+'px'; c.style.top=my+'px';
+    });
+    (function animCR(){
+      rx+=(mx-rx)*.08; ry+=(my-ry)*.08;
+      rot+=vel*0.4; vel*=0.9;
+      cr.style.left=rx+'px';
+      cr.style.top=ry+'px';
+      cr.style.transform='translate(-50%,-50%) rotate('+rot+'deg)';
+      try{ cr.querySelector('.cr-rect').style.strokeWidth=Math.min(vel*0.1+0.5,2); }catch(e){}
+      requestAnimationFrame(animCR);
+    })();
+    document.querySelectorAll('a,button,.mission-block,.projet-row,.fact-row,.c-link').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{
+        document.body.classList.add('cursor-hover');
+        try{ cr.querySelector('.cr-rect').style.stroke='var(--orange)'; }catch(e){}
+        c.style.background='var(--orange)';
+      });
+      el.addEventListener('mouseleave',()=>{
+        document.body.classList.remove('cursor-hover');
+        try{ cr.querySelector('.cr-rect').style.stroke='var(--yellow)'; }catch(e){}
+        c.style.background='var(--yellow)';
+      });
+    });
+  } else {
+    // Touch device: hide cursor elements
+    document.getElementById('c').style.display='none';
+    document.getElementById('cr').style.display='none';
+  }
+} catch(e) {
+  // Cursor failed silently — page still works
+  console.warn('Cursor init failed:', e);
+}
 
 // Loader
-// Loader dismiss - robust, works even if fonts/resources are slow
+// Loader dismiss — triple safety net
 function dismissLoader(){
   const loader=document.getElementById('loader');
-  if(!loader) return;
+  if(!loader||loader.dataset.dismissed) return;
+  loader.dataset.dismissed='1';
   loader.style.transition='opacity .6s ease';
   loader.style.opacity='0';
   loader.style.pointerEvents='none';
-  setTimeout(()=>{loader.style.display='none'},700);
+  setTimeout(()=>{if(loader)loader.style.display='none'},700);
 }
-// Trigger after 1.8s max, or when page is fully loaded — whichever comes first
-const loaderTimer=setTimeout(dismissLoader, 1800);
-window.addEventListener('load',()=>{clearTimeout(loaderTimer);setTimeout(dismissLoader,400);});
+const loaderTimer=setTimeout(dismissLoader,2000);
+window.addEventListener('load',()=>{clearTimeout(loaderTimer);setTimeout(dismissLoader,300);});
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(dismissLoader,1800);});
 
 //
