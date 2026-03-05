@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio BTS SIO SISR — Alternance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --surface: #10141f;
+      --surface2: #161b2e;
+      --border: #1e2640;
+      --accent: #00e5ff;
+      --accent2: #7b61ff;
+      --accent3: #ff6b6b;
+      --text: #e8ecf5;
+      --muted: #6b7494;
+      --green: #00ffa3;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease, opacity 0.3s;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.35s cubic-bezier(.25,.46,.45,.94), opacity 0.3s;
+      transform: translate(-50%, -50%);
+      opacity: 0.5;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.6;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(10, 13, 20, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+    .nav-logo span { color: var(--muted); }
+    .nav-links {
+      display: flex; gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -3px;
+      width: 0; height: 1px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 3rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.3;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+    }
+    .hero-glow {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    }
+    .hero-content {
+      position: relative;
+      text-align: center;
+      max-width: 900px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      letter-spacing: 0.05em;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+    .hero h1 .name {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      color: var(--muted);
+      margin: 1.5rem 0 2.5rem;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+    .hero-tags {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .tag {
+      padding: 0.4rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .tag:hover { border-color: var(--accent); color: var(--accent); }
+    .hero-scroll {
+      position: absolute;
+      bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.5rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollAnim 2s ease-in-out infinite;
+    }
+    @keyframes scrollAnim {
+      0% { transform: scaleY(0); transform-origin: top; }
+      50% { transform: scaleY(1); transform-origin: top; }
+      51% { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 6rem 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .section-line {
+      width: 60px; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      margin-bottom: 3rem;
+      border-radius: 2px;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* A PROPOS */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-text p {
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+      font-size: 1.05rem;
+    }
+    .about-text p strong { color: var(--text); font-weight: 700; }
+    .about-text .placeholder {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.7;
+    }
+    .about-text .placeholder::before {
+      content: '// À compléter → ';
+      color: var(--accent2);
+    }
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .stat-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+    .stat-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+    .skills-block {
+      margin-top: 2rem;
+    }
+    .skills-block h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .skill-bars { display: flex; flex-direction: column; gap: 0.9rem; }
+    .skill-bar-item { display: flex; flex-direction: column; gap: 0.4rem; }
+    .skill-bar-header { display: flex; justify-content: space-between; font-size: 0.85rem; }
+    .skill-bar-header span:last-child {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+    }
+    .skill-bar-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      animation: fillBar 1.5s ease forwards;
+      transform-origin: left;
+    }
+    @keyframes fillBar {
+      from { width: 0; }
+    }
+
+    /* ALTERNANCE */
+    .alternance-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      padding: 2.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .alternance-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2));
+    }
+    .company-logo-placeholder {
+      width: 80px; height: 80px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-align: center;
+      flex-shrink: 0;
+      padding: 0.5rem;
+      line-height: 1.4;
+    }
+    .company-info h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .company-info .company-role {
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      margin: 0.3rem 0 0.8rem;
+    }
+    .company-meta {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .alternance-missions {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .mission-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+    }
+    .mission-card:hover {
+      border-color: var(--accent2);
+      transform: translateY(-4px);
+    }
+    .mission-icon {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    .mission-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .mission-card p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+    .mission-card .placeholder-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent2);
+      opacity: 0.7;
+      margin-top: 0.5rem;
+    }
+
+    /* TIMELINE */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2.5rem;
+      padding-left: 2rem;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -2.5rem;
+      top: 0.3rem;
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .timeline-date {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+    .timeline-item h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .timeline-item p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    /* PROJETS */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    .project-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-5px);
+    }
+    .project-card-top {
+      padding: 1.8rem 1.8rem 1rem;
+      flex: 1;
+    }
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .project-number {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .project-status {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .status-done {
+      background: rgba(0, 255, 163, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(0, 255, 163, 0.3);
+    }
+    .status-wip {
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+    .status-todo {
+      background: rgba(107, 116, 148, 0.1);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .project-card h4 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+    .project-card p {
+      color: var(--muted);
+      font-size: 0.87rem;
+      line-height: 1.7;
+    }
+    .project-card-bottom {
+      padding: 1rem 1.8rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .tech-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+    }
+
+    /* CONTACT */
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .contact-text h2 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .contact-text p {
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .contact-link:hover {
+      border-color: var(--accent);
+      transform: translateX(6px);
+    }
+    .contact-link-icon {
+      font-size: 1.3rem;
+    }
+    .contact-link-info { flex: 1; }
+    .contact-link-info span:first-child {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+    .contact-link-info span:last-child {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .contact-arrow { color: var(--accent); font-size: 1rem; }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .contact-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(123, 97, 255, 0.15), transparent 70%);
+    }
+    .contact-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .contact-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .availability-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(0, 255, 163, 0.08);
+      border: 1px solid rgba(0, 255, 163, 0.25);
+      border-radius: 100px;
+      color: var(--green);
+      font-size: 0.8rem;
+      font-family: 'Space Mono', monospace;
+    }
+    .availability-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: blink 1.5s infinite;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    footer .logo-foot {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ANIMATIONS */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { gap: 1.2rem; }
+      .hero { padding: 7rem 1.5rem 4rem; }
+      section { padding: 4rem 1.5rem; }
+      .about-grid, .contact-wrapper { grid-template-columns: 1fr; gap: 2rem; }
+      .alternance-header { flex-direction: column; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">[ <span>portfolio</span>.bts_sio ]</div>
+  <ul class="nav-links">
+    <li><a href="#about">Profil</a></li>
+    <li><a href="#alternance">Alternance</a></li>
+    <li><a href="#projets">Projets</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-badge">BTS SIO · Option SISR · Alternance 2025–2027</div>
+    <h1>
+      <span class="name">Prénom Nom</span><br>
+      Technicien Réseau<br>& Systèmes
+    </h1>
+    <p class="hero-sub">
+      Étudiant en BTS SIO SISR en alternance chez <strong style="color:var(--text)">Colas Digital Solutions</strong><br>
+      Passionné par l'infrastructure, la cybersécurité et l'administration système.
+    </p>
+    <div class="hero-tags">
+      <span class="tag">Réseaux & Infrastructure</span>
+      <span class="tag">Cybersécurité</span>
+      <span class="tag">Administration Système</span>
+      <span class="tag">Linux / Windows Server</span>
+      <span class="tag">Virtualisation</span>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    SCROLL
+  </div>
+</div>
+
+<hr class="section-divider" />
+
+<!-- À PROPOS -->
+<section id="about">
+  <div class="fade-up">
+    <div class="section-label">01 — Qui suis-je</div>
+    <h2 class="section-title">À propos de moi</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="about-grid fade-up">
+    <div class="about-text">
+      <p>Bonjour, je m'appelle <strong>Prénom Nom</strong> et je suis actuellement en <strong>BTS SIO option SISR</strong> en alternance au sein de <strong>Colas Digital Solutions</strong>.</p>
+      <div class="placeholder">Présente-toi en quelques phrases : ta passion pour l'informatique, ton parcours, ta personnalité…</div>
+      <p>Mon option SISR (Solutions d'Infrastructure, Systèmes et Réseaux) me permet de me spécialiser dans l'administration des réseaux, la gestion des serveurs et la sécurité informatique.</p>
+      <div class="placeholder">Parle de ce qui te passionne dans le domaine IT et de tes objectifs professionnels après le BTS.</div>
+
+      <div class="skills-block">
+        <h3>Compétences techniques</h3>
+        <div class="skill-bars">
+          <div class="skill-bar-item">
+            <div class="skill-bar-header"><span>Réseaux (TCP/IP, VLAN, VPN)</span><span>??%</span></div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="width: 70%"></div></div>
+          </div>
+          <div class="skill-bar-item">
+            <div class="skill-bar-header"><span>Administration Windows Server</span><span>??%</span></div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="width: 65%"></div></div>
+          </div>
+          <div class="skill-bar-item">
+            <div class="skill-bar-header"><span>Linux (Debian / Ubuntu)</span><span>??%</span></div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="width: 60%"></div></div>
+          </div>
+          <div class="skill-bar-item">
+            <div class="skill-bar-header"><span>Virtualisation (VMware / Hyper-V)</span><span>??%</span></div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="width: 55%"></div></div>
+          </div>
+          <div class="skill-bar-item">
+            <div class="skill-bar-header"><span>Scripting (PowerShell / Bash)</span><span>??%</span></div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" style="width: 50%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="about-stats">
+        <div class="stat-card">
+          <div class="stat-num">2</div>
+          <div class="stat-label">Ans de formation BTS SIO</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">SISR</div>
+          <div class="stat-label">Option Infrastructure & Réseaux</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">Colas</div>
+          <div class="stat-label">Digital Solutions — Alternance</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">??</div>
+          <div class="stat-label">Projets réalisés / à réaliser</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- ALTERNANCE -->
+<section id="alternance">
+  <div class="fade-up">
+    <div class="section-label">02 — Expérience professionnelle</div>
+    <h2 class="section-title">Mon alternance</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="alternance-header fade-up">
+    <div class="company-logo-placeholder">COLAS<br>DIGITAL<br>SOLUTIONS</div>
+    <div class="company-info">
+      <h3>Colas Digital Solutions</h3>
+      <div class="company-role">// Technicien Réseaux & Systèmes — Alternant BTS SIO SISR</div>
+      <div class="company-meta">
+        <span class="meta-chip">📅 2025 – 2027</span>
+        <span class="meta-chip">📍 [Ville à compléter]</span>
+        <span class="meta-chip">🏗️ BTP / Numérique</span>
+        <span class="meta-chip">🔄 Alternance</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h3 style="font-size:1.1rem; font-weight:700; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Missions & activités réalisées</h3>
+    <div class="alternance-missions">
+      <div class="mission-card">
+        <div class="mission-icon">🖧</div>
+        <h4>Administration Réseau</h4>
+        <p>Gestion et maintenance de l'infrastructure réseau de l'entreprise.</p>
+        <p class="placeholder-text">// Détaille tes missions réseau ici</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🖥️</div>
+        <h4>Administration Systèmes</h4>
+        <p>Gestion des serveurs Windows/Linux, déploiement, supervision.</p>
+        <p class="placeholder-text">// Détaille tes missions systèmes ici</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🔒</div>
+        <h4>Sécurité Informatique</h4>
+        <p>Participation à la mise en place de politiques de sécurité.</p>
+        <p class="placeholder-text">// Détaille tes missions sécu ici</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🛠️</div>
+        <h4>Support & Helpdesk</h4>
+        <p>Assistance aux utilisateurs, résolution d'incidents N1/N2.</p>
+        <p class="placeholder-text">// Détaille le support utilisateur ici</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">☁️</div>
+        <h4>Cloud & Virtualisation</h4>
+        <p>Gestion des environnements virtualisés et services cloud.</p>
+        <p class="placeholder-text">// Détaille les missions cloud ici</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">📋</div>
+        <h4>Documentation Technique</h4>
+        <p>Rédaction et mise à jour de la documentation IT.</p>
+        <p class="placeholder-text">// Détaille la documentation réalisée</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up" style="margin-top:3.5rem;">
+    <h3 style="font-size:1.1rem; font-weight:700; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:2rem;">Chronologie de l'alternance</h3>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">Septembre 2025</div>
+        <h4>Début de l'alternance</h4>
+        <p>Intégration chez Colas Digital Solutions — prise en main des outils et de l'environnement technique.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:var(--accent2); box-shadow: 0 0 0 2px var(--accent2);"></div>
+        <div class="timeline-date" style="color:var(--accent2)">À compléter</div>
+        <h4>Première mission majeure</h4>
+        <p style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--accent2); opacity:0.7;">// Décris ta première mission importante ici</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:var(--accent2); box-shadow: 0 0 0 2px var(--accent2);"></div>
+        <div class="timeline-date" style="color:var(--accent2)">À compléter</div>
+        <h4>Projet / Évènement clé</h4>
+        <p style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--accent2); opacity:0.7;">// Ajoute les étapes importantes de ton alternance</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:var(--muted); box-shadow: 0 0 0 2px var(--muted);"></div>
+        <div class="timeline-date" style="color:var(--muted)">Juin 2027 (futur)</div>
+        <h4>Fin de l'alternance & examen BTS</h4>
+        <p>Passage des épreuves du BTS SIO SISR — soutenance de stage.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- PROJETS -->
+<section id="projets">
+  <div class="fade-up">
+    <div class="section-label">03 — Réalisations académiques</div>
+    <h2 class="section-title">Projets BTS SIO</h2>
+    <div class="section-line"></div>
+    <p style="color:var(--muted); margin-bottom:2.5rem; max-width:600px;">Projets réalisés et à réaliser dans le cadre du BTS SIO SISR — 2025/2027. Les projets marqués <span style="color:var(--accent); font-family:'Space Mono',monospace; font-size:0.8rem;">EN COURS</span> ou <span style="color:var(--muted); font-family:'Space Mono',monospace; font-size:0.8rem;">À FAIRE</span> seront complétés au fur et à mesure.</p>
+  </div>
+
+  <div class="projects-grid fade-up">
+
+    <div class="project-card">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#01</span>
+          <span class="project-status status-todo">À FAIRE</span>
+        </div>
+        <h4>Infrastructure Réseau d'Entreprise</h4>
+        <p>Conception et déploiement d'une infrastructure réseau complète avec routage, switching, VLAN et services réseau (DHCP, DNS, AD).</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">Cisco</span>
+        <span class="tech-tag">VLAN</span>
+        <span class="tech-tag">Active Directory</span>
+        <span class="tech-tag">DNS/DHCP</span>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#02</span>
+          <span class="project-status status-todo">À FAIRE</span>
+        </div>
+        <h4>Mise en place d'un serveur Linux</h4>
+        <p>Installation, configuration et sécurisation d'un serveur Linux (Debian/Ubuntu). Services web, SSH, pare-feu iptables/UFW.</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">Linux</span>
+        <span class="tech-tag">Apache/Nginx</span>
+        <span class="tech-tag">SSH</span>
+        <span class="tech-tag">iptables</span>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#03</span>
+          <span class="project-status status-todo">À FAIRE</span>
+        </div>
+        <h4>Supervision & Monitoring Réseau</h4>
+        <p>Déploiement d'une solution de supervision (Zabbix / Nagios / PRTG) pour surveiller l'infrastructure et alerter en cas d'incident.</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">Zabbix</span>
+        <span class="tech-tag">SNMP</span>
+        <span class="tech-tag">Nagios</span>
+        <span class="tech-tag">Monitoring</span>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#04</span>
+          <span class="project-status status-todo">À FAIRE</span>
+        </div>
+        <h4>Virtualisation avec VMware / Hyper-V</h4>
+        <p>Création et gestion d'un environnement virtualisé. Déploiement de VMs, snapshots, clonage et gestion des ressources.</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">VMware</span>
+        <span class="tech-tag">Hyper-V</span>
+        <span class="tech-tag">VirtualBox</span>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#05</span>
+          <span class="project-status status-todo">À FAIRE</span>
+        </div>
+        <h4>Sécurisation d'un réseau d'entreprise</h4>
+        <p>Audit de sécurité, mise en place d'un pare-feu, VPN, DMZ et politique de sécurité conforme aux bonnes pratiques.</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">pfSense</span>
+        <span class="tech-tag">VPN</span>
+        <span class="tech-tag">DMZ</span>
+        <span class="tech-tag">Firewall</span>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#06</span>
+          <span class="project-status status-todo">À FAIRE</span>
+        </div>
+        <h4>Déploiement & gestion de postes</h4>
+        <p>Automatisation du déploiement de postes de travail (MDT / WDS), gestion via GPO dans un domaine Active Directory.</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">MDT/WDS</span>
+        <span class="tech-tag">GPO</span>
+        <span class="tech-tag">WSUS</span>
+        <span class="tech-tag">Intune</span>
+      </div>
+    </div>
+
+    <div class="project-card" style="border-style: dashed; opacity: 0.6;">
+      <div class="project-card-top">
+        <div class="project-header">
+          <span class="project-number">#07</span>
+          <span class="project-status status-todo">À AJOUTER</span>
+        </div>
+        <h4>Projet à compléter</h4>
+        <p style="font-family:'Space Mono',monospace; font-size:0.8rem; color:var(--accent2);">// Ajoute ici tes propres projets au fil de ta formation…</p>
+      </div>
+      <div class="project-card-bottom">
+        <span class="tech-tag">+ Technologie</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="fade-up">
+    <div class="section-label">04 — Me contacter</div>
+    <h2 class="section-title">Contact</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="contact-wrapper fade-up">
+    <div class="contact-text">
+      <h2>Discutons de vos projets<br><span style="color:var(--accent)">ou de ma candidature.</span></h2>
+      <p>N'hésitez pas à me contacter pour toute question concernant mon parcours, mes projets ou mon alternance chez Colas Digital Solutions.</p>
+
+      <div class="contact-links">
+        <a href="mailto:ton.email@exemple.com" class="contact-link">
+          <span class="contact-link-icon">✉️</span>
+          <div class="contact-link-info">
+            <span>Email</span>
+            <span>ton.email@exemple.com</span>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+        <a href="https://linkedin.com/in/tonprofil" target="_blank" class="contact-link">
+          <span class="contact-link-icon">💼</span>
+          <div class="contact-link-info">
+            <span>LinkedIn</span>
+            <span>linkedin.com/in/tonprofil</span>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+        <a href="https://github.com/tonprofil" target="_blank" class="contact-link">
+          <span class="contact-link-icon">🐙</span>
+          <div class="contact-link-info">
+            <span>GitHub</span>
+            <span>github.com/tonprofil</span>
+          </div>
+          <span class="contact-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="contact-card">
+      <h3>Disponibilité</h3>
+      <p>Actuellement en alternance chez Colas Digital Solutions · BTS SIO SISR 2025–2027</p>
+      <div class="availability-badge">En alternance · Disponible pour échanger</div>
+      <div style="margin-top:2rem; padding-top:1.5rem; border-top: 1px solid var(--border);">
+        <h3 style="margin-bottom:0.5rem; font-size:1rem;">Formation</h3>
+        <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:0.8rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.9rem; color:var(--muted);">BTS SIO SISR</span>
+            <span style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--accent);">2025 – 2027</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.9rem; color:var(--muted);">Lycée / CFA — [À compléter]</span>
+            <span style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--muted);">Lieu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo-foot">[ portfolio.bts_sio ] — Prénom Nom</div>
+  <p>BTS SIO SISR · Colas Digital Solutions · 2025–2027</p>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    cursorRing.style.left = rx + 'px';
+    cursorRing.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // Fade-up on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
