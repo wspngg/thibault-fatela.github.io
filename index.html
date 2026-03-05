@@ -45,6 +45,10 @@ body.cursor-hover #cr{width:60px;height:60px}
   position:fixed;inset:0;background:var(--ink);z-index:8000;
   display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:1rem;
+  animation:loaderOut .4s ease 2s forwards;
+}
+@keyframes loaderOut{
+  to{opacity:0;visibility:hidden;pointer-events:none}
 }
 #loader-name{
   font-family:'Bebas Neue',sans-serif;
@@ -911,6 +915,12 @@ footer{
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Loader safety net
+setTimeout(function(){
+  var l=document.getElementById('loader');
+  if(l){l.style.opacity='0';l.style.visibility='hidden';}
+},2200);
+
 // Cursor — only on non-touch desktop
 try {
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -957,19 +967,5 @@ try {
   console.warn('Cursor init failed:', e);
 }
 
-// Loader
-// Loader dismiss — triple safety net
-function dismissLoader(){
-  const loader=document.getElementById('loader');
-  if(!loader||loader.dataset.dismissed) return;
-  loader.dataset.dismissed='1';
-  loader.style.transition='opacity .6s ease';
-  loader.style.opacity='0';
-  loader.style.pointerEvents='none';
-  setTimeout(()=>{if(loader)loader.style.display='none'},700);
-}
-const loaderTimer=setTimeout(dismissLoader,2000);
-window.addEventListener('load',()=>{clearTimeout(loaderTimer);setTimeout(dismissLoader,300);});
-document.addEventListener('DOMContentLoaded',()=>{setTimeout(dismissLoader,1800);});
 
-//
+// 
