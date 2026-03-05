@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thibault FATELA — BTS SIO SISR</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c0c0c;
+  --paper:#f0ede6;
+  --paper2:#e8e4db;
+  --yellow:#f5c400;
+  --orange:#e8560a;
+  --red:#c0392b;
+  --white:#fafaf7;
+  --mid:#8a8578;
+  --border:#2a2a2a;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--white);
+  font-family:'DM Mono',monospace;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* CURSOR */
+#c{position:fixed;width:8px;height:8px;background:var(--yellow);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s}
+#cr{position:fixed;width:40px;height:40px;border:1px solid var(--yellow);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.4;transition:transform .4s cubic-bezier(.25,.46,.45,.94)}
+body:hover #c{transform:translate(-50%,-50%) scale(1)}
+
+/* LOADER */
+#loader{
+  position:fixed;inset:0;background:var(--ink);z-index:8000;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:1rem;
+}
+#loader-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,12vw,10rem);
+  letter-spacing:0.05em;
+  color:var(--white);
+  overflow:hidden;
+}
+#loader-name span{display:inline-block;transform:translateY(120%);animation:slideUp .8s cubic-bezier(.16,1,.3,1) forwards}
+#loader-name span:nth-child(2){animation-delay:.15s;color:var(--yellow)}
+#loader-bar{width:200px;height:1px;background:rgba(255,255,255,.1);margin-top:2rem;overflow:hidden}
+#loader-bar::after{content:'';display:block;height:100%;width:0;background:var(--yellow);animation:loadBar 1.2s ease forwards .3s}
+@keyframes slideUp{to{transform:translateY(0)}}
+@keyframes loadBar{to{width:100%}}
+#loader.out{animation:fadeOut .5s ease forwards 1.8s}
+@keyframes fadeOut{to{opacity:0;pointer-events:none;visibility:hidden}}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.5rem 3rem;
+  mix-blend-mode:normal;
+}
+.nav-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;letter-spacing:.15em;
+  color:var(--yellow);
+}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{
+  text-decoration:none;color:rgba(255,255,255,.4);
+  font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--yellow)}
+.nav-status{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.65rem;letter-spacing:.1em;color:rgba(255,255,255,.3);
+}
+.nav-dot{width:6px;height:6px;background:#4ade80;border-radius:50%;animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* HERO */
+.hero{
+  min-height:100vh;
+  display:grid;
+  grid-template-rows:1fr auto;
+  padding:0;
+  position:relative;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(245,196,0,.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 20% 80%, rgba(232,86,10,.03) 0%, transparent 70%);
+}
+.hero-lines{
+  position:absolute;inset:0;
+  background-image:repeating-linear-gradient(
+    0deg,transparent,transparent 79px,rgba(255,255,255,.03) 79px,rgba(255,255,255,.03) 80px
+  );
+}
+.hero-main{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:8rem 3rem 0;
+  position:relative;
+  z-index:2;
+}
+.hero-eyebrow{
+  display:flex;align-items:center;gap:1.5rem;
+  margin-bottom:1.5rem;
+}
+.hero-eyebrow-line{width:40px;height:1px;background:var(--yellow)}
+.hero-eyebrow span{
+  font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--yellow);
+}
+h1.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(5rem,18vw,16rem);
+  line-height:.88;
+  letter-spacing:-.01em;
+  margin-bottom:0;
+}
+h1.hero-title .line1{display:block;color:var(--white)}
+h1.hero-title .line2{
+  display:block;
+  -webkit-text-stroke:1px rgba(255,255,255,.15);
+  color:transparent;
+  font-size:clamp(4.5rem,16vw,14rem);
+}
+h1.hero-title .line3{
+  display:block;
+  color:var(--yellow);
+  font-size:clamp(3rem,10vw,9rem);
+}
+.hero-bottom{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  border-top:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:2;
+}
+.hero-bottom-cell{
+  padding:2rem 3rem;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.hero-bottom-cell:last-child{border-right:none}
+.hbc-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--mid);margin-bottom:.5rem}
+.hbc-val{font-size:.95rem;color:var(--white);line-height:1.5}
+.hbc-val strong{color:var(--yellow);font-weight:500}
+.hero-scroll-hint{
+  position:absolute;bottom:2rem;right:3rem;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:.8rem;
+  color:rgba(255,255,255,.2);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  writing-mode:vertical-rl;
+}
+.scroll-tick{width:1px;height:50px;background:linear-gradient(to bottom,var(--yellow),transparent);animation:tickAnim 2s ease infinite}
+@keyframes tickAnim{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* SECTION BASE */
+.s{
+  position:relative;
+  overflow:hidden;
+}
+.s-inner{max-width:1400px;margin:0 auto;padding:8rem 3rem}
+
+/* SECTION LABEL */
+.s-num{
+  font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--yellow);margin-bottom:.5rem;
+  display:flex;align-items:center;gap:1rem;
+}
+.s-num::before{content:'';flex:none;width:30px;height:1px;background:var(--yellow)}
+
+/* DIVIDER */
+.divider{height:1px;background:rgba(255,255,255,.06);margin:0}
+
+/* ===== ABOUT ===== */
+.about-layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6rem;
+  align-items:start;
+  margin-top:4rem;
+}
+.about-big-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,8vw,7rem);
+  line-height:.9;
+  letter-spacing:-.01em;
+  color:var(--white);
+}
+.about-big-name span{color:var(--yellow)}
+.about-role-tag{
+  display:inline-flex;align-items:center;gap:.8rem;
+  margin-top:1.5rem;
+  padding:.5rem 1.2rem;
+  border:1px solid rgba(255,255,255,.1);
+  font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--mid);
+}
+.about-role-tag::before{content:'';width:6px;height:6px;background:var(--yellow);border-radius:50%}
+.about-right{padding-top:.5rem}
+.about-intro{
+  font-family:'Fraunces',serif;
+  font-size:clamp(1.1rem,2vw,1.4rem);
+  line-height:1.7;
+  color:rgba(255,255,255,.7);
+  margin-bottom:3rem;
+  font-weight:300;
+  font-style:italic;
+}
+.about-intro em{font-style:normal;color:var(--white);font-weight:600}
+.about-facts{display:flex;flex-direction:column;gap:0}
+.fact-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:1rem 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.fact-row:first-child{border-top:1px solid rgba(255,255,255,.06)}
+.fact-key{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--mid)}
+.fact-val{font-size:.9rem;color:var(--white);text-align:right}
+.fact-val strong{color:var(--yellow);font-weight:500}
+
+/* ===== COLAS SECTION ===== */
+.colas-s{background:var(--paper);color:var(--ink)}
+.colas-header{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:3rem;
+  align-items:end;
+  margin-bottom:5rem;
+}
+.colas-logo-block{
+  display:flex;flex-direction:column;gap:.8rem;
+}
+.colas-logo-box{
+  width:120px;height:120px;
+  background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.8rem;letter-spacing:.1em;color:var(--yellow);
+}
+.colas-title-block .s-num{color:var(--orange)}
+.colas-title-block .s-num::before{background:var(--orange)}
+.colas-big-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,7vw,6rem);
+  line-height:.9;letter-spacing:-.01em;color:var(--ink);
+}
+.colas-big-title span{color:var(--orange)}
+.colas-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px;
+  background:rgba(0,0,0,.08);
+}
+.colas-cell{
+  background:var(--paper);
+  padding:3rem;
+}
+.colas-cell.full{grid-column:1/-1}
+.colas-cell.dark{background:var(--ink);color:var(--white)}
+.colas-cell.yellow{background:var(--yellow);color:var(--ink)}
+.colas-cell-label{
+  font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+  margin-bottom:1.2rem;opacity:.5;
+}
+.colas-cell-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(1.5rem,3vw,2.5rem);
+  line-height:1;letter-spacing:.02em;
+  margin-bottom:1rem;
+}
+.colas-cell p{
+  font-size:.9rem;line-height:1.8;opacity:.7;
+  font-family:'DM Mono',monospace;
+}
+.colas-cell p strong{opacity:1;font-weight:500}
+.colas-stat{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,6vw,5rem);
+  line-height:1;letter-spacing:.02em;
+  margin-bottom:.3rem;
+}
+.colas-stat-sub{font-size:.75rem;opacity:.6;letter-spacing:.1em}
+.colas-missions-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:2px;
+  background:rgba(0,0,0,.08);
+  margin-top:2px;
+}
+.mission-block{
+  background:var(--paper2);
+  padding:2.5rem;
+  transition:background .3s;
+  cursor:default;
+}
+.mission-block:hover{background:var(--ink);color:var(--white)}
+.mission-block:hover .mission-num{color:var(--yellow)}
+.mission-block:hover .mission-desc{opacity:.6}
+.mission-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3rem;color:rgba(0,0,0,.1);line-height:1;
+  margin-bottom:1rem;
+  transition:color .3s;
+}
+.mission-title{font-size:.85rem;font-weight:500;letter-spacing:.05em;margin-bottom:.7rem;text-transform:uppercase}
+.mission-desc{font-size:.8rem;line-height:1.7;opacity:.55;transition:opacity .3s}
+
+/* GROUPE BOUYGUES STRIP */
+.bouygues-strip{
+  background:var(--ink);
+  border-top:2px solid var(--yellow);
+  border-bottom:2px solid var(--yellow);
+  padding:0;
+  overflow:hidden;
+}
+.bouygues-strip-inner{
+  display:flex;align-items:stretch;
+}
+.bouygues-text{
+  flex:1;
+  padding:3rem;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.bouygues-text h3{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(1.5rem,3vw,2.5rem);
+  letter-spacing:.05em;margin-bottom:1rem;
+}
+.bouygues-text p{font-size:.85rem;line-height:1.8;color:rgba(255,255,255,.55);max-width:500px}
+.bouygues-stats{
+  display:flex;
+}
+.b-stat{
+  padding:3rem 2.5rem;
+  border-right:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;justify-content:center;
+  min-width:160px;
+}
+.b-stat:last-child{border-right:none}
+.b-stat-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.5rem;color:var(--yellow);line-height:1;
+}
+.b-stat-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-top:.3rem}
+
+/* ===== PROJETS ===== */
+.projets-s{background:var(--ink)}
+.projets-header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:4rem;
+}
+.projets-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,7vw,6rem);
+  line-height:.9;letter-spacing:-.01em;
+}
+.projets-title span{color:var(--yellow)}
+.projets-meta{
+  font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mid);text-align:right;line-height:2;
+}
+.projets-list{display:flex;flex-direction:column;gap:0}
+.projet-row{
+  display:grid;
+  grid-template-columns:80px 1fr auto auto;
+  align-items:center;
+  gap:2rem;
+  padding:2rem 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  transition:background .2s;
+  padding-left:1.5rem;
+  padding-right:1.5rem;
+  margin:0 -1.5rem;
+  cursor:default;
+}
+.projet-row:first-child{border-top:1px solid rgba(255,255,255,.06)}
+.projet-row:hover{background:rgba(245,196,0,.03)}
+.projet-row:hover .pr-num{color:var(--yellow)}
+.pr-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;color:rgba(255,255,255,.1);
+  transition:color .3s;line-height:1;
+}
+.pr-info h4{font-size:1rem;font-weight:500;letter-spacing:.03em;margin-bottom:.3rem}
+.pr-info p{font-size:.78rem;color:var(--mid);line-height:1.6;max-width:500px}
+.pr-techs{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:flex-end}
+.pr-tech{
+  font-size:.65rem;padding:.2rem .6rem;
+  border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.4);
+  letter-spacing:.05em;
+}
+.pr-status{
+  font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.3rem .8rem;
+  white-space:nowrap;
+}
+.st-todo{border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3)}
+.st-wip{border:1px solid var(--yellow);color:var(--yellow)}
+.st-done{border:1px solid #4ade80;color:#4ade80}
+.projets-empty-note{
+  margin-top:4rem;
+  padding:3rem;
+  border:1px dashed rgba(255,255,255,.1);
+  text-align:center;
+}
+.projets-empty-note p{
+  font-size:.8rem;color:var(--mid);line-height:1.8;
+}
+.projets-empty-note span{color:var(--yellow)}
+
+/* CONTACT */
+.contact-s{
+  background:var(--yellow);
+  color:var(--ink);
+}
+.contact-layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6rem;
+  align-items:center;
+}
+.contact-big{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,7vw,6rem);
+  line-height:.9;letter-spacing:-.01em;
+}
+.contact-sub{font-size:.9rem;line-height:1.8;opacity:.6;margin-top:1.5rem;max-width:400px}
+.contact-links{display:flex;flex-direction:column;gap:0}
+.c-link{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.5rem 0;
+  border-bottom:1px solid rgba(0,0,0,.1);
+  text-decoration:none;color:var(--ink);
+  transition:padding-left .3s;
+}
+.c-link:first-child{border-top:1px solid rgba(0,0,0,.1)}
+.c-link:hover{padding-left:1rem}
+.c-link-left{display:flex;flex-direction:column;gap:.2rem}
+.c-link-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;opacity:.5}
+.c-link-val{font-size:.95rem;font-weight:500}
+.c-link-arrow{font-size:1.2rem;opacity:.3;transition:opacity .3s}
+.c-link:hover .c-link-arrow{opacity:1}
+
+/* FOOTER */
+footer{
+  background:var(--ink);
+  border-top:1px solid rgba(255,255,255,.05);
+  padding:2rem 3rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.f-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1rem;letter-spacing:.15em;color:rgba(255,255,255,.2);
+}
+.f-right{font-size:.65rem;letter-spacing:.1em;color:rgba(255,255,255,.2)}
+
+/* ANIMATIONS */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.reveal.in{opacity:1;transform:none}
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .8s ease,transform .8s ease}
+.reveal-left.in{opacity:1;transform:none}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  nav{padding:1.2rem 1.5rem}
+  .nav-links{display:none}
+  .hero-main{padding:7rem 1.5rem 0}
+  .hero-bottom{grid-template-columns:1fr;border-top:1px solid rgba(255,255,255,.08)}
+  .hero-bottom-cell{border-right:none;border-bottom:1px solid rgba(255,255,255,.08);padding:1.5rem}
+  .s-inner{padding:5rem 1.5rem}
+  .about-layout{grid-template-columns:1fr;gap:3rem}
+  .colas-header{grid-template-columns:1fr;gap:1.5rem}
+  .colas-grid{grid-template-columns:1fr}
+  .colas-cell.full{grid-column:auto}
+  .colas-missions-grid{grid-template-columns:1fr}
+  .bouygues-strip-inner{flex-direction:column}
+  .bouygues-stats{flex-wrap:wrap}
+  .contact-layout{grid-template-columns:1fr;gap:3rem}
+  .projets-header{flex-direction:column;align-items:flex-start;gap:1rem}
+  .projet-row{grid-template-columns:50px 1fr;gap:1rem}
+  .pr-techs,.pr-status{display:none}
+  footer{flex-direction:column;gap:.5rem;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div id="loader-name">
+    <span>THIBAULT&nbsp;</span><span>FATELA</span>
+  </div>
+  <div id="loader-bar"></div>
+</div>
+
+<div id="c"></div>
+<div id="cr"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">T.FATELA</div>
+  <ul class="nav-links">
+    <li><a href="#about">Profil</a></li>
+    <li><a href="#colas">Alternance</a></li>
+    <li><a href="#projets">Projets</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-status"><div class="nav-dot"></div>En alternance · CDS</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lines"></div>
+  <div class="hero-main">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span>Portfolio — BTS SIO SISR — 2025/2027</span>
+    </div>
+    <h1 class="hero-title">
+      <span class="line1">THIBAULT</span>
+      <span class="line2">FATELA</span>
+      <span class="line3">SISR ×<br>RÉSEAUX</span>
+    </h1>
+  </div>
+  <div class="hero-bottom">
+    <div class="hero-bottom-cell">
+      <div class="hbc-label">Formation</div>
+      <div class="hbc-val"><strong>BTS SIO</strong> Option SISR<br>Alternance · 2025–2027</div>
+    </div>
+    <div class="hero-bottom-cell">
+      <div class="hbc-label">Entreprise</div>
+      <div class="hbc-val"><strong>Colas Digital Solutions</strong><br>Groupe Bouygues</div>
+    </div>
+    <div class="hero-bottom-cell">
+      <div class="hbc-label">Spécialité</div>
+      <div class="hbc-val">Infrastructure · Réseaux<br>Solutions IT terrain</div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">
+    <div class="scroll-tick"></div>
+    Scroll
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ABOUT -->
+<section class="s" id="about">
+  <div class="s-inner">
+    <div class="s-num reveal">01 — Profil</div>
+    <div class="about-layout">
+      <div class="reveal-left">
+        <div class="about-big-name">THIBAULT<br><span>FATELA</span></div>
+        <div class="about-role-tag">Technicien Réseaux & Systèmes · Alternant</div>
+      </div>
+      <div class="about-right reveal">
+        <p class="about-intro">
+          Étudiant en <em>BTS SIO option SISR</em>, je me spécialise dans les infrastructures réseaux et systèmes en entreprise. Mon alternance chez <em>Colas Digital Solutions</em> me permet d'intervenir directement sur le terrain, au cœur d'un groupe international.
+        </p>
+        <div class="about-facts">
+          <div class="fact-row">
+            <span class="fact-key">Formation</span>
+            <span class="fact-val"><strong>BTS SIO SISR</strong></span>
+          </div>
+          <div class="fact-row">
+            <span class="fact-key">Rythme</span>
+            <span class="fact-val">Alternance</span>
+          </div>
+          <div class="fact-row">
+            <span class="fact-key">Entreprise</span>
+            <span class="fact-val"><strong>Colas Digital Solutions</strong></span>
+          </div>
+          <div class="fact-row">
+            <span class="fact-key">Groupe</span>
+            <span class="fact-val">Bouygues</span>
+          </div>
+          <div class="fact-row">
+            <span class="fact-key">Période</span>
+            <span class="fact-val">2025 — 2027</span>
+          </div>
+          <div class="fact-row">
+            <span class="fact-key">Domaine</span>
+            <span class="fact-val">Réseaux · Systèmes · IT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COLAS SECTION -->
+<section class="s colas-s" id="colas">
+  <div class="s-inner">
+    <div class="colas-header">
+      <div class="colas-logo-block reveal-left">
+        <div class="colas-logo-box">COLAS<br>DS</div>
+      </div>
+      <div class="colas-title-block reveal">
+        <div class="s-num">02 — Alternance</div>
+        <div class="colas-big-title">COLAS<br>DIGITAL<br><span>SOLUTIONS</span></div>
+      </div>
+    </div>
+
+    <div class="colas-grid reveal">
+      <!-- Présentation CDS -->
+      <div class="colas-cell dark">
+        <div class="colas-cell-label">Qui est Colas Digital Solutions ?</div>
+        <div class="colas-cell-title" style="color:var(--yellow)">La filiale IT du groupe Colas</div>
+        <p>
+          <strong>Colas Digital Solutions (CDS)</strong> est la filiale informatique et numérique du groupe Colas. Elle a pour mission de concevoir, déployer et maintenir l'ensemble des solutions technologiques du groupe — infrastructures réseaux, systèmes d'information, outils digitaux — au service des entités Colas dans le monde entier.
+        </p>
+      </div>
+
+      <!-- Colas -->
+      <div class="colas-cell">
+        <div class="colas-cell-label">Le groupe Colas</div>
+        <div class="colas-cell-title">Un géant mondial<br>du BTP</div>
+        <p>
+          <strong>Colas</strong> est l'un des leaders mondiaux de la construction et de l'entretien d'infrastructures de transport. Routes, rails, aéroports, pipelines : le groupe intervient sur tous les types d'ouvrages à travers le monde, avec une présence dans plus de <strong>50 pays</strong> et des dizaines de milliers de collaborateurs.
+        </p>
+      </div>
+
+      <!-- Bouygues -->
+      <div class="colas-cell yellow">
+        <div class="colas-cell-label" style="color:var(--ink)">Groupe de rattachement</div>
+        <div class="colas-cell-title">Bouygues</div>
+        <p style="color:var(--ink)">
+          Colas fait partie intégrante du <strong>Groupe Bouygues</strong>, conglomérat français de premier plan actif dans la construction, les télécoms (Bouygues Telecom) et les médias (TF1). Bouygues est coté au CAC 40 et réalise un chiffre d'affaires de plusieurs dizaines de milliards d'euros par an.
+        </p>
+      </div>
+
+      <!-- Stats -->
+      <div class="colas-cell dark">
+        <div class="colas-cell-label">Colas en chiffres</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:.5rem">
+          <div>
+            <div class="colas-stat" style="color:var(--yellow)">50+</div>
+            <div class="colas-stat-sub" style="color:rgba(255,255,255,.4)">Pays d'implantation</div>
+          </div>
+          <div>
+            <div class="colas-stat" style="color:var(--yellow)">55K+</div>
+            <div class="colas-stat-sub" style="color:rgba(255,255,255,.4)">Collaborateurs</div>
+          </div>
+          <div>
+            <div class="colas-stat" style="color:var(--orange)">CAC</div>
+            <div class="colas-stat-sub" style="color:rgba(255,255,255,.4)">Groupe Bouygues · 40</div>
+          </div>
+          <div>
+            <div class="colas-stat" style="color:var(--orange)">IT</div>
+            <div class="colas-stat-sub" style="color:rgba(255,255,255,.4)">Filiale CDS dédiée</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mon rôle -->
+      <div class="colas-cell full" style="background:var(--paper2)">
+        <div class="colas-cell-label">Mon rôle en alternance</div>
+        <div class="colas-cell-title">Technicien Réseaux & Systèmes<br><span style="color:var(--orange)">sur les sites Colas</span></div>
+        <p style="max-width:800px">
+          Au sein de <strong>Colas Digital Solutions</strong>, j'interviens en tant que technicien réseaux pour <strong>déployer des solutions réseaux directement sur les sites opérationnels de Colas</strong>. Cela signifie aller sur le terrain — chantiers, agences régionales, sites de production — pour installer, configurer et mettre en service les équipements réseau nécessaires à la connectivité et au bon fonctionnement des opérations du groupe.
+        </p>
+      </div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div class="reveal" style="margin-top:2px">
+      <div class="colas-missions-grid">
+        <div class="mission-block">
+          <div class="mission-num">01</div>
+          <div class="mission-title">Déploiement réseau terrain</div>
+          <div class="mission-desc">Installation et configuration d'équipements réseaux (switchs, routeurs, bornes Wi-Fi) sur les sites opérationnels et chantiers du groupe Colas partout en France.</div>
+        </div>
+        <div class="mission-block">
+          <div class="mission-num">02</div>
+          <div class="mission-title">Mise en service & tests</div>
+          <div class="mission-desc">Vérification de la connectivité, tests de bon fonctionnement des équipements déployés, validation des accès et remontée d'incidents à l'équipe.</div>
+        </div>
+        <div class="mission-block">
+          <div class="mission-num">03</div>
+          <div class="mission-title">Suivi & documentation</div>
+          <div class="mission-desc">Rédaction des comptes-rendus d'intervention, mise à jour des schémas d'architecture réseau et documentation technique des sites.</div>
+        </div>
+        <div class="mission-block">
+          <div class="mission-num">04</div>
+          <div class="mission-title">Support aux utilisateurs</div>
+          <div class="mission-desc">Assistance aux collaborateurs de Colas sur site pour la résolution d'incidents réseau et la bonne utilisation des outils mis en place.</div>
+        </div>
+        <div class="mission-block">
+          <div class="mission-num">05</div>
+          <div class="mission-title">Gestion du parc IT</div>
+          <div class="mission-desc">Inventaire et suivi des équipements réseaux déployés sur les différents sites, gestion des remplacements et des mises à jour.</div>
+        </div>
+        <div class="mission-block">
+          <div class="mission-num">06</div>
+          <div class="mission-title">Coordination IT</div>
+          <div class="mission-desc">Travail en équipe avec les ingénieurs et techniciens CDS pour planifier les déploiements et assurer la continuité des services réseau du groupe.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOUYGUES STRIP -->
+<div class="bouygues-strip">
+  <div class="bouygues-strip-inner">
+    <div class="bouygues-text">
+      <h3>GROUPE BOUYGUES —<br>UN ACTEUR GLOBAL</h3>
+      <p>Fondé par Francis Bouygues en 1952, le Groupe Bouygues est aujourd'hui l'un des premiers groupes industriels français. Il se structure autour de la construction (Bouygues Construction, Bouygues Immobilier, Colas), des télécommunications (Bouygues Telecom) et des médias (TF1 Group). Colas, filiale du groupe, génère à elle seule plus de 14 milliards d'euros de chiffre d'affaires annuel.</p>
+    </div>
+    <div class="bouygues-stats">
+      <div class="b-stat">
+        <div class="b-stat-num">1952</div>
+        <div class="b-stat-label">Fondation</div>
+      </div>
+      <div class="b-stat">
+        <div class="b-stat-num">5</div>
+        <div class="b-stat-label">Branches du groupe</div>
+      </div>
+      <div class="b-stat">
+        <div class="b-stat-num">CAC40</div>
+        <div class="b-stat-label">Coté en bourse</div>
+      </div>
+      <div class="b-stat">
+        <div class="b-stat-num">14Md€</div>
+        <div class="b-stat-label">CA Colas / an</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJETS -->
+<section class="s projets-s" id="projets">
+  <div class="s-inner">
+    <div class="s-num reveal">03 — Réalisations BTS SIO</div>
+    <div class="projets-header reveal">
+      <div class="projets-title">PROJETS<br><span>2025–2027</span></div>
+      <div class="projets-meta">
+        BTS SIO · Option SISR<br>
+        Projets académiques & professionnels<br>
+        Mis à jour au fil de la formation
+      </div>
+    </div>
+
+    <div class="projets-list reveal">
+
+      <div class="projet-row">
+        <div class="pr-num">01</div>
+        <div class="pr-info">
+          <h4>Infrastructure Réseau d'Entreprise</h4>
+          <p>Conception et déploiement d'une infrastructure réseau complète — routage, switching, VLAN, services réseau DHCP / DNS / Active Directory.</p>
+        </div>
+        <div class="pr-techs">
+          <span class="pr-tech">Cisco</span>
+          <span class="pr-tech">VLAN</span>
+          <span class="pr-tech">Active Directory</span>
+        </div>
+        <div class="pr-status st-todo">À réaliser</div>
+      </div>
+
+      <div class="projet-row">
+        <div class="pr-num">02</div>
+        <div class="pr-info">
+          <h4>Serveur Linux — Déploiement & Sécurisation</h4>
+          <p>Installation et sécurisation d'un serveur Debian/Ubuntu : services web, SSH, pare-feu UFW/iptables, gestion des utilisateurs.</p>
+        </div>
+        <div class="pr-techs">
+          <span class="pr-tech">Linux</span>
+          <span class="pr-tech">Apache</span>
+          <span class="pr-tech">SSH</span>
+        </div>
+        <div class="pr-status st-todo">À réaliser</div>
+      </div>
+
+      <div class="projet-row">
+        <div class="pr-num">03</div>
+        <div class="pr-info">
+          <h4>Supervision & Monitoring Réseau</h4>
+          <p>Mise en place d'une solution de supervision (Zabbix / Nagios) pour surveiller l'infrastructure et gérer les alertes en temps réel.</p>
+        </div>
+        <div class="pr-techs">
+          <span class="pr-tech">Zabbix</span>
+          <span class="pr-tech">SNMP</span>
+          <span class="pr-tech">Nagios</span>
+        </div>
+        <div class="pr-status st-todo">À réaliser</div>
+      </div>
+
+      <div class="projet-row">
+        <div class="pr-num">04</div>
+        <div class="pr-info">
+          <h4>Virtualisation — VMware / Hyper-V</h4>
+          <p>Création et administration d'un environnement virtualisé : déploiement de VMs, snapshots, gestion des ressources.</p>
+        </div>
+        <div class="pr-techs">
+          <span class="pr-tech">VMware</span>
+          <span class="pr-tech">Hyper-V</span>
+        </div>
+        <div class="pr-status st-todo">À réaliser</div>
+      </div>
+
+      <div class="projet-row">
+        <div class="pr-num">05</div>
+        <div class="pr-info">
+          <h4>Sécurisation d'un réseau d'entreprise</h4>
+          <p>Audit de sécurité, mise en place d'un pare-feu pfSense, VPN site-à-site, DMZ et politique de sécurité.</p>
+        </div>
+        <div class="pr-techs">
+          <span class="pr-tech">pfSense</span>
+          <span class="pr-tech">VPN</span>
+          <span class="pr-tech">DMZ</span>
+        </div>
+        <div class="pr-status st-todo">À réaliser</div>
+      </div>
+
+      <div class="projet-row">
+        <div class="pr-num">06</div>
+        <div class="pr-info">
+          <h4>Déploiement automatisé de postes</h4>
+          <p>Automatisation du déploiement de postes Windows via MDT/WDS, gestion par GPO dans un domaine Active Directory.</p>
+        </div>
+        <div class="pr-techs">
+          <span class="pr-tech">MDT/WDS</span>
+          <span class="pr-tech">GPO</span>
+          <span class="pr-tech">WSUS</span>
+        </div>
+        <div class="pr-status st-todo">À réaliser</div>
+      </div>
+
+    </div>
+
+    <div class="projets-empty-note reveal">
+      <p>
+        Cette liste sera enrichie au fil des années de formation.<br>
+        <span>Les projets réalisés passeront en statut "Terminé" avec détails et documentation.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTACT -->
+<section class="s contact-s" id="contact">
+  <div class="s-inner">
+    <div class="contact-layout">
+      <div class="reveal-left">
+        <div class="s-num" style="color:var(--ink);opacity:.5">04 — Contact</div>
+        <div class="contact-big">TRAVAILLONS<br>ENSEMBLE.</div>
+        <p class="contact-sub">Étudiant en BTS SIO SISR, actuellement en alternance chez Colas Digital Solutions. N'hésitez pas à me contacter.</p>
+      </div>
+      <div class="contact-links reveal">
+        <a href="mailto:thibault.fatela@exemple.com" class="c-link">
+          <div class="c-link-left">
+            <span class="c-link-label">Email</span>
+            <span class="c-link-val">thibault.fatela@exemple.com</span>
+          </div>
+          <span class="c-link-arrow">↗</span>
+        </a>
+        <a href="https://linkedin.com/in/thibault-fatela" target="_blank" class="c-link">
+          <div class="c-link-left">
+            <span class="c-link-label">LinkedIn</span>
+            <span class="c-link-val">linkedin.com/in/thibault-fatela</span>
+          </div>
+          <span class="c-link-arrow">↗</span>
+        </a>
+        <a href="https://github.com/wspngg" target="_blank" class="c-link">
+          <div class="c-link-left">
+            <span class="c-link-label">GitHub</span>
+            <span class="c-link-val">github.com/wspngg</span>
+          </div>
+          <span class="c-link-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-logo">THIBAULT FATELA — BTS SIO SISR</div>
+  <div class="f-right">Colas Digital Solutions · Groupe Bouygues · 2025–2027</div>
+</footer>
+
+<script>
+// Cursor
+const c=document.getElementById('c'),cr=document.getElementById('cr');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  c.style.left=mx+'px';c.style.top=my+'px';
+});
+(function animCR(){
+  rx+=(mx-rx)*.1;ry+=(my-ry)*.1;
+  cr.style.left=rx+'px';cr.style.top=ry+'px';
+  requestAnimationFrame(animCR);
+})();
+
+// Loader
+setTimeout(()=>{document.getElementById('loader').style.cssText='opacity:0;pointer-events:none;transition:opacity .5s ease'},1800);
+setTimeout(()=>{document.getElementById('loader').style.display='none'},2400);
+
+// Scroll reveal
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')});
+},{threshold:.1});
+document.querySelectorAll('.reveal,.reveal-left').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
