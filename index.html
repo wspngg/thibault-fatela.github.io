@@ -945,7 +945,17 @@ document.querySelectorAll('a,button,.mission-block,.projet-row,.fact-row').forEa
 });
 
 // Loader
-setTimeout(()=>{document.getElementById('loader').style.cssText='opacity:0;pointer-events:none;transition:opacity .5s ease'},1800);
-setTimeout(()=>{document.getElementById('loader').style.display='none'},2400);
+// Loader dismiss - robust, works even if fonts/resources are slow
+function dismissLoader(){
+  const loader=document.getElementById('loader');
+  if(!loader) return;
+  loader.style.transition='opacity .6s ease';
+  loader.style.opacity='0';
+  loader.style.pointerEvents='none';
+  setTimeout(()=>{loader.style.display='none'},700);
+}
+// Trigger after 1.8s max, or when page is fully loaded — whichever comes first
+const loaderTimer=setTimeout(dismissLoader, 1800);
+window.addEventListener('load',()=>{clearTimeout(loaderTimer);setTimeout(dismissLoader,400);});
 
 //
