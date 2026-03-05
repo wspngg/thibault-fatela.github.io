@@ -686,624 +686,595 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
 
 
 
-<!-- ═══════════════════════════════════════════════ -->
-<!-- EASTER EGG — Couloir de l'horreur              -->
-<!-- ═══════════════════════════════════════════════ -->
 
-<!-- Trigger invisible — coin bas droit -->
-<div id="egg-trigger" style="position:fixed;bottom:0;right:0;width:40px;height:40px;z-index:600;cursor:default;opacity:0;"></div>
 
-<!-- Overlay couloir -->
+<!-- ═══════════════ EASTER EGG ═══════════════ -->
+<div id="egg-trigger" style="position:fixed;bottom:0;right:0;width:40px;height:40px;z-index:600;opacity:0;cursor:default;"></div>
+
 <div id="corridor" style="display:none;position:fixed;inset:0;z-index:9990;background:#000;overflow:hidden;">
-
   <canvas id="corr-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>
+  <canvas id="grain-c"     style="position:absolute;inset:0;width:100%;height:100%;opacity:.06;pointer-events:none;z-index:2;image-rendering:pixelated;"></canvas>
+  <div id="vignette"       style="position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse 60% 60% at 50% 50%,transparent 25%,rgba(0,0,0,.98) 100%);"></div>
+  <div id="blood-flash"    style="position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;background:rgba(120,0,0,.25);"></div>
+  <div id="dark-overlay"   style="position:absolute;inset:0;pointer-events:none;z-index:5;background:#000;opacity:0;transition:opacity .2s;"></div>
 
-  <!-- Grain statique -->
-  <canvas id="grain-c" style="position:absolute;inset:0;width:100%;height:100%;opacity:.05;pointer-events:none;z-index:2;"></canvas>
-
-  <!-- Vignette -->
-  <div style="position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse 65% 65% at 50% 50%,transparent 30%,rgba(0,0,0,.97) 100%);"></div>
-
-  <!-- Flash sang -->
-  <div id="blood-flash" style="position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;background:rgba(120,0,0,.2);transition:opacity .05s;"></div>
-
-  <!-- Lampe éteinte overlay -->
-  <div id="dark-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:5;background:#000;opacity:0;transition:opacity .3s;"></div>
-
-  <!-- HUD controls -->
-  <div id="corr-hud" style="position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:10;opacity:0;transition:opacity 1.5s;font-family:'Courier New',monospace;font-size:.65rem;letter-spacing:.18em;color:rgba(255,255,255,.2);text-transform:uppercase;white-space:nowrap;pointer-events:none;">
-    ZQSD — avancer &nbsp;·&nbsp; F — lampe &nbsp;·&nbsp; ESC — abandonner
+  <!-- Barre progression -->
+  <div style="position:absolute;top:1.5rem;left:50%;transform:translateX(-50%);z-index:10;width:180px;opacity:0;transition:opacity 1.5s;" id="prog-wrap">
+    <div style="height:1px;background:rgba(255,255,255,.06);"><div id="prog-bar" style="height:100%;width:0%;background:rgba(180,0,0,.5);transition:width .1s;"></div></div>
   </div>
 
-  <!-- Barre de progression couloir -->
-  <div id="corr-progress-wrap" style="position:absolute;top:1.5rem;left:50%;transform:translateX(-50%);z-index:10;opacity:0;transition:opacity 1.5s;width:200px;">
-    <div style="height:1px;background:rgba(255,255,255,.08);width:100%;position:relative;">
-      <div id="corr-progress-bar" style="position:absolute;left:0;top:0;height:100%;width:0%;background:rgba(255,60,60,.4);transition:width .1s;"></div>
-    </div>
+  <!-- HUD -->
+  <div id="corr-hud" style="position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:10;opacity:0;transition:opacity 1.5s;font-family:'Courier New',monospace;font-size:.62rem;letter-spacing:.18em;color:rgba(255,255,255,.18);text-transform:uppercase;pointer-events:none;white-space:nowrap;">
+    ZQSD · avancer &nbsp;|&nbsp; F · lampe &nbsp;|&nbsp; E · interagir &nbsp;|&nbsp; ESC · fuir
   </div>
 
   <!-- Écran d'entrée -->
-  <div id="corr-enter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:#000;">
-    <div id="enter-content" style="text-align:center;opacity:0;transition:opacity 2s;font-family:'Courier New',monospace;color:#fff;">
-      <div id="enter-warning" style="font-size:clamp(2.5rem,8vw,5rem);color:#8b0000;animation:flkr 2.5s infinite;margin-bottom:1.5rem;">⚠</div>
-      <div style="font-size:clamp(.9rem,2.5vw,1.3rem);letter-spacing:.25em;text-transform:uppercase;line-height:2;">VOUS N'AURIEZ PAS DÛ CLIQUER.</div>
-      <div style="margin-top:2.5rem;font-size:.7rem;letter-spacing:.15em;opacity:.3;">appuyez sur une touche pour entrer...</div>
+  <div id="corr-enter" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:#000;">
+    <div id="enter-txt" style="text-align:center;opacity:0;transition:opacity 2s;font-family:'Courier New',monospace;color:#fff;">
+      <div style="font-size:clamp(3rem,8vw,5rem);color:#6b0000;animation:EGflkr 2s infinite;margin-bottom:1.2rem;">⚠</div>
+      <div style="font-size:clamp(.85rem,2vw,1.2rem);letter-spacing:.28em;text-transform:uppercase;">VOUS N'AURIEZ PAS DÛ CLIQUER.</div>
+      <div style="margin-top:2.5rem;font-size:.65rem;letter-spacing:.15em;opacity:.25;">— appuyez sur une touche —</div>
     </div>
   </div>
 
-  <!-- Écran FIN — la chose au bout du couloir -->
-  <div id="corr-end" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:25;background:#000;opacity:0;transition:opacity 1s;">
-    <div id="end-content" style="text-align:center;font-family:'Courier New',monospace;color:#fff;max-width:600px;padding:2rem;">
-      <div id="end-face" style="font-size:clamp(4rem,15vw,10rem);line-height:1;animation:faceFlkr .08s infinite;margin-bottom:1rem;">👁</div>
-      <div style="font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.2em;text-transform:uppercase;color:#8b0000;margin-bottom:1rem;animation:flkr 1s infinite;">IL VOUS A VU.</div>
-      <div style="font-size:.8rem;letter-spacing:.12em;opacity:.5;line-height:2;margin-bottom:2.5rem;">vous ne pouvez plus partir.<br>il est maintenant en vous.</div>
-      <button id="end-btn" style="background:none;border:1px solid rgba(139,0,0,.6);color:rgba(255,255,255,.4);font-family:'Courier New',monospace;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;padding:.8rem 2rem;cursor:pointer;transition:all .3s;">
-        accepter et continuer
-      </button>
+  <!-- Écran FIN : silhouette dos -->
+  <div id="corr-end" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:25;background:#000;opacity:0;transition:opacity 1.2s;">
+    <div style="text-align:center;font-family:'Courier New',monospace;color:#fff;padding:2rem;">
+      <!-- Silhouette dessinée en SVG / canvas -->
+      <canvas id="silhouette-canvas" width="320" height="420" style="display:block;margin:0 auto;animation:EGpulse 3s ease-in-out infinite;"></canvas>
+      <div id="end-prompt" style="margin-top:1.5rem;font-size:.7rem;letter-spacing:.22em;color:rgba(255,255,255,.3);text-transform:uppercase;animation:EGflkr 1.5s infinite;opacity:0;transition:opacity 2s;">
+        appuyez sur E pour interagir
+      </div>
     </div>
   </div>
-
 </div>
 
 <style>
-@keyframes flkr{0%,100%{opacity:1}88%{opacity:1}89%{opacity:0}91%{opacity:1}95%{opacity:0}97%{opacity:1}}
-@keyframes faceFlkr{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.02) skewX(1deg)}}
+@keyframes EGflkr{0%,100%{opacity:1}88%{opacity:1}89%{opacity:0}92%{opacity:1}95%{opacity:0}97%{opacity:1}}
+@keyframes EGpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
 
-/* Site corrompu */
-body.corrupted{
-  animation:bodyGlitch 8s infinite;
-  filter:hue-rotate(0deg);
+/* ═══ SITE CORROMPU ═══ */
+body.corrupted{ animation:EGbodyGlitch 5s infinite; }
+@keyframes EGbodyGlitch{
+  0%,100%{filter:none;transform:none}
+  3%{filter:hue-rotate(180deg) saturate(3) contrast(2);transform:skewX(3deg) translateX(-4px)}
+  3.2%{filter:none;transform:none}
+  18%{filter:none}
+  18.3%{filter:invert(.08) hue-rotate(120deg) saturate(4);transform:skewX(-2deg) translateY(2px)}
+  18.5%{filter:none;transform:none}
+  45%{filter:none}
+  45.2%{filter:hue-rotate(270deg) saturate(2);transform:skewX(1deg)}
+  45.4%{filter:none;transform:none}
+  70%{filter:none}
+  70.1%{filter:contrast(3) saturate(0) brightness(.3)}
+  70.15%{filter:none}
 }
-@keyframes bodyGlitch{
-  0%,100%{filter:hue-rotate(0deg) saturate(1);transform:none}
-  2%{filter:hue-rotate(180deg) saturate(2) contrast(1.5);transform:skewX(2deg)}
-  2.1%{filter:hue-rotate(0deg) saturate(1);transform:none}
-  15%{filter:hue-rotate(0deg) saturate(1)}
-  15.1%{filter:hue-rotate(90deg) saturate(3);transform:translateX(3px)}
-  15.2%{filter:none;transform:none}
-  40%{filter:none}
-  40.5%{filter:invert(.05) hue-rotate(30deg)}
-  41%{filter:none}
-}
-body.corrupted nav .nav-logo::after{
-  content:" [CORROMPU]";
-  font-size:.5rem;
-  color:#8b0000;
-  animation:flkr .5s infinite;
-}
-body.corrupted .hero-title .line2{
-  -webkit-text-stroke:1px rgba(139,0,0,.4)!important;
-}
-body.corrupted footer .f-right::after{
-  content:" — IL VOUS REGARDE";
-  color:#8b0000;
-  font-size:.6rem;
-  animation:flkr 2s infinite;
+body.corrupted::before{
+  content:"";position:fixed;inset:0;z-index:8001;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(139,0,0,.04) 3px,rgba(139,0,0,.04) 4px);
+  animation:EGscan 4s linear infinite;
 }
 body.corrupted::after{
-  content:"";
-  position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(139,0,0,.015) 2px,rgba(139,0,0,.015) 4px);
-  pointer-events:none;
-  z-index:8000;
-  animation:scanlines 8s linear infinite;
+  content:"";position:fixed;inset:0;z-index:8002;pointer-events:none;
+  background:transparent;
+  animation:EGrgb 7s infinite;
 }
-@keyframes scanlines{from{background-position:0 0}to{background-position:0 100px}}
-body.corrupted #egg-trigger{
-  background:rgba(139,0,0,.05);
-  border:1px solid rgba(139,0,0,.2);
-  border-radius:0;
+@keyframes EGscan{from{background-position:0 0}to{background-position:0 200px}}
+@keyframes EGrgb{
+  0%,100%{box-shadow:none}
+  10%{box-shadow:inset 3px 0 0 rgba(255,0,0,.15),inset -3px 0 0 rgba(0,255,255,.15)}
+  10.5%{box-shadow:none}
+  40%{box-shadow:inset -4px 0 0 rgba(255,0,0,.2),inset 4px 0 0 rgba(0,255,0,.1)}
+  40.3%{box-shadow:none}
+}
+
+/* Textes qui se corrompent */
+body.corrupted .hero-title .line1::after{content:" ̷ ̴ ̶";color:#8b0000;font-size:.4em;animation:EGflkr .3s infinite;}
+body.corrupted .hero-title .line3{color:#8b0000!important;animation:EGflkr 4s infinite;}
+body.corrupted .nav-logo::after{content:" [INFECTÉ]";font-size:.45em;color:#8b0000;animation:EGflkr .8s infinite;vertical-align:middle;}
+body.corrupted .f-right::after{content:" · IL EST DANS VOS MURS";color:#8b0000;font-size:.85em;animation:EGflkr 2s infinite;}
+body.corrupted .hbc-val strong{color:#8b0000!important;animation:EGflkr 3s infinite;}
+
+/* Images / sections qui cassent */
+body.corrupted .hero-lines{
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(139,0,0,.15) 39px,rgba(139,0,0,.15) 40px)!important;
+}
+body.corrupted .section-divider,
+body.corrupted .divider{background:rgba(139,0,0,.3)!important;}
+body.corrupted .bouygues-strip{border-color:#8b0000!important;}
+body.corrupted .mission-block:nth-child(3) .mission-title::after{
+  content:" ̸";color:#8b0000;
+}
+body.corrupted .mission-block:nth-child(5) .mission-desc::before{
+  content:"[DONNÉES CORROMPUES] ";color:#8b0000;font-size:.75em;animation:EGflkr .4s infinite;
+}
+
+/* Curseur corrompu */
+body.corrupted #cr{border-color:#8b0000!important;animation:EGflkr .15s infinite;}
+
+/* Message fantôme flottant */
+#ghost-msg{
+  position:fixed;z-index:8003;
+  font-family:'Courier New',monospace;font-size:.7rem;
+  color:rgba(139,0,0,.6);letter-spacing:.15em;text-transform:uppercase;
+  pointer-events:none;
+  animation:EGflkr .6s infinite;
+  display:none;
 }
 </style>
 
+<div id="ghost-msg"></div>
+
 <script>
 (function(){
-  const trigger  = document.getElementById('egg-trigger');
-  const corridor = document.getElementById('corridor');
-  const canvas   = document.getElementById('corr-canvas');
-  const ctx      = canvas.getContext('2d');
-  const grainC   = document.getElementById('grain-c');
-  const grainCtx = grainC.getContext('2d');
-  const enterScreen  = document.getElementById('corr-enter');
-  const enterContent = document.getElementById('enter-content');
-  const corrHud  = document.getElementById('corr-hud');
-  const corrPWrap= document.getElementById('corr-progress-wrap');
-  const corrPBar = document.getElementById('corr-progress-bar');
-  const bloodFlashEl = document.getElementById('blood-flash');
-  const darkOverlay  = document.getElementById('dark-overlay');
-  const corrEnd  = document.getElementById('corr-end');
-  const endBtn   = document.getElementById('end-btn');
+  /* ── refs ── */
+  const trigger   = document.getElementById('egg-trigger');
+  const corridor  = document.getElementById('corridor');
+  const canvas    = document.getElementById('corr-canvas');
+  const ctx       = canvas.getContext('2d');
+  const grainC    = document.getElementById('grain-c');
+  const grainCtx  = grainC.getContext('2d');
+  const enterDiv  = document.getElementById('corr-enter');
+  const enterTxt  = document.getElementById('enter-txt');
+  const corrHud   = document.getElementById('corr-hud');
+  const progWrap  = document.getElementById('prog-wrap');
+  const progBar   = document.getElementById('prog-bar');
+  const bloodEl   = document.getElementById('blood-flash');
+  const darkEl    = document.getElementById('dark-overlay');
+  const corrEnd   = document.getElementById('corr-end');
+  const silCanvas = document.getElementById('silhouette-canvas');
+  const silCtx    = silCanvas.getContext('2d');
+  const endPrompt = document.getElementById('end-prompt');
+  const ghostMsg  = document.getElementById('ghost-msg');
 
-  let active=false, started=false;
+  let active=false,started=false,endReached=false,canInteract=false;
   let keys={};
-  let audioCtx=null;
-  let droneNode=null, droneGain=null;
+  let audioCtx=null,droneGain=null;
 
-  // ── AUDIO ──────────────────────────────────────
-  function getAudio(){
+  /* ── MAP : couloir droit 4×70 ── */
+  const CW=4,CH=72;
+  const map=[];
+  for(let y=0;y<CH;y++)
+    for(let x=0;x<CW;x++)
+      map.push(x===0||x===CW-1?1:0);
+
+  let player={x:1.5,y:1.5,angle:-Math.PI/2};
+  const FOV=Math.PI/3.2, RAYS=480, MAX_D=90;
+  let pos=0,bobAngle=0,breathPhase=0;
+  let flashlight=true,flashFlicker=1.0;
+  let heartTimer=0,heartRate=2200;
+  let bloodAlpha=0,stepAcc=0,stepCd=360;
+  let whisperT=Math.random()*12000+6000;
+  let grainT=0,frameId=null,lastTs=0;
+
+  /* ── AUDIO ── */
+  function audio(){
     if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     return audioCtx;
   }
   function playDrone(){
     try{
-      const a=getAudio();
-      droneGain=a.createGain();
-      droneGain.gain.value=0;
-      const osc1=a.createOscillator(); osc1.type='sawtooth'; osc1.frequency.value=30;
-      const osc2=a.createOscillator(); osc2.type='sine';     osc2.frequency.value=27;
-      const lfo =a.createOscillator(); lfo.type='sine';      lfo.frequency.value=0.08;
-      const lfoG=a.createGain();       lfoG.gain.value=4;
-      lfo.connect(lfoG); lfoG.connect(osc1.frequency);
-      const filt=a.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=200;
-      osc1.connect(filt); osc2.connect(filt); filt.connect(droneGain); droneGain.connect(a.destination);
-      osc1.start(); osc2.start(); lfo.start();
-      droneGain.gain.linearRampToValueAtTime(0.07, a.currentTime+4);
+      const a=audio();
+      droneGain=a.createGain(); droneGain.gain.value=0;
+      const o1=a.createOscillator(); o1.type='sawtooth'; o1.frequency.value=30;
+      const o2=a.createOscillator(); o2.type='sine';     o2.frequency.value=27.3;
+      const lfo=a.createOscillator(); lfo.type='sine';   lfo.frequency.value=0.07;
+      const lg=a.createGain(); lg.gain.value=3;
+      lfo.connect(lg); lg.connect(o1.frequency);
+      const f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=200;
+      o1.connect(f); o2.connect(f); f.connect(droneGain); droneGain.connect(a.destination);
+      o1.start(); o2.start(); lfo.start();
+      droneGain.gain.linearRampToValueAtTime(0.06,a.currentTime+3);
     }catch(e){}
   }
-  function rampDrone(vol, dur=2){
+  function rampDrone(v,d=1){
     if(!droneGain||!audioCtx) return;
-    droneGain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime+dur);
+    try{droneGain.gain.linearRampToValueAtTime(v,audioCtx.currentTime+d);}catch(e){}
   }
   function playStep(){
     try{
-      const a=getAudio();
-      const b=a.createBuffer(1,a.sampleRate*0.09,a.sampleRate);
+      const a=audio(),b=a.createBuffer(1,~~(a.sampleRate*.09),a.sampleRate);
       const d=b.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)*0.5;
-      const s=a.createBufferSource();
-      const f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=280;
-      const g=a.createGain(); g.gain.value=0.55;
-      s.buffer=b; s.connect(f); f.connect(g); g.connect(a.destination); s.start();
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)*.5;
+      const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+      f.type='lowpass';f.frequency.value=260;g.gain.value=.55;
+      s.buffer=b;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
     }catch(e){}
   }
   function playScream(){
     try{
-      const a=getAudio();
-      const b=a.createBuffer(1,a.sampleRate*0.8,a.sampleRate);
+      const a=audio(),b=a.createBuffer(1,~~(a.sampleRate*.9),a.sampleRate);
       const d=b.getChannelData(0);
       for(let i=0;i<d.length;i++){
-        const t=i/a.sampleRate;
-        const env=Math.max(0,1-t*1.5);
-        d[i]=(Math.random()*2-1)*env*0.4+Math.sin(t*880*Math.PI*2)*env*0.3;
+        const t=i/a.sampleRate,env=Math.max(0,1-t*1.3);
+        d[i]=(Math.random()*2-1)*env*.35+Math.sin(t*660*Math.PI*2)*env*.25;
       }
-      const s=a.createBufferSource();
-      const g=a.createGain(); g.gain.value=0.6;
-      s.buffer=b; s.connect(g); g.connect(a.destination); s.start();
+      const s=a.createBufferSource(),g=a.createGain();
+      g.gain.value=.7;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();
     }catch(e){}
   }
-  function playHeartbeat(rate){
+  function playHeartbeat(){
     try{
-      const a=getAudio();
+      const a=audio();
       function beat(){
-        const b=a.createBuffer(1,a.sampleRate*0.12,a.sampleRate);
+        const b=a.createBuffer(1,~~(a.sampleRate*.12),a.sampleRate);
         const d=b.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=Math.sin(i/d.length*Math.PI)*Math.sin(i*0.8)*0.35;
-        const s=a.createBufferSource();
-        const g=a.createGain(); g.gain.value=0.5;
-        s.buffer=b; s.connect(g); g.connect(a.destination); s.start();
+        for(let i=0;i<d.length;i++) d[i]=Math.sin(i/d.length*Math.PI)*Math.sin(i*.8)*.3;
+        const s=a.createBufferSource(),g=a.createGain();
+        g.gain.value=.5;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();
       }
-      beat();
-      setTimeout(beat, 130);
+      beat();setTimeout(beat,130);
+    }catch(e){}
+  }
+  function playWhisper(){
+    try{
+      const a=audio(),b=a.createBuffer(1,~~(a.sampleRate*1.4),a.sampleRate);
+      const d=b.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*.018*Math.sin(Math.PI*i/d.length);
+      const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+      f.type='bandpass';f.frequency.value=700+Math.random()*500;f.Q.value=.35;
+      g.gain.value=.35;s.buffer=b;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
     }catch(e){}
   }
 
-  // ── RAYCASTER — couloir DROIT infini ──────────
-  // Map: couloir droit, long (64 cases), murs sur les côtés
-  const CW=4, CH=70;
-  const map=[];
-  for(let y=0;y<CH;y++){
-    for(let x=0;x<CW;x++){
-      if(x===0||x===CW-1) map.push(1); // murs latéraux
-      else map.push(0);                  // couloir vide
-    }
-  }
-
-  const CORRIDOR_LENGTH = CH - 3; // fond du couloir
-
-  let player={x:1.5, y:1.5, angle:-Math.PI/2}; // regarde vers le haut (y négatif = avancer)
-  const FOV=Math.PI/3.2;
-  const RAYS=480;
-  const MAX_D=80;
-
-  // État
-  let pos=0; // 0..1 position dans le couloir
-  let bobAngle=0;
-  let flashlight=true;
-  let flashFlicker=1.0;
-  let heartTimer=0, heartRate=2200;
-  let bloodAlpha=0;
-  let lastStep=0, stepCooldown=350;
-  let endReached=false;
-  let grainTimer=0;
-  let breathPhase=0;
-  let whisperTimer=Math.random()*15000+8000;
-  let endFadeTimer=-1;
-  let frameId=null;
-
-  // Textures wall procédurales
-  function wallShade(dist, side, wx, isEnd){
-    const maxLight = flashlight ? flashFlicker : 0;
-    const attenuation = 1/(1+dist*dist*0.08);
-    let brightness = maxLight * attenuation;
-
-    // Stries verticales — béton fissuré
-    const crack1 = Math.abs(Math.sin(wx*61.3+side*3.7));
-    const crack2 = Math.abs(Math.sin(wx*23.1)*Math.cos(wx*7.3));
-    const isCrack = crack1 > 0.96 || crack2 > 0.97;
-
-    // Taches humidité
-    const mold = Math.pow(Math.abs(Math.sin(wx*14.2)*Math.cos(wx*5.7)),3)*0.5;
-    // Sang
-    const blood= Math.abs(Math.sin(wx*37.9)) > 0.97 && Math.abs(Math.cos(wx*11.3))>0.6;
-
+  /* ── RAYCASTER ── */
+  function wallShade(dist,side,wx,nearEnd){
+    const att=1/(1+dist*dist*.07);
+    const br=flashlight?flashFlicker*att:0;
+    const crack=Math.abs(Math.sin(wx*59.3+side*4.1))>.96;
+    const blood=Math.abs(Math.sin(wx*37.1))>.965&&Math.abs(Math.cos(wx*11.7))>.6;
+    const mold=Math.pow(Math.abs(Math.sin(wx*13.7)*Math.cos(wx*5.3)),3)*.4;
     let r,g,b;
-    if(isEnd && dist<4){
-      // Le fond du couloir : rouge profond
-      r=Math.floor(brightness*180+20);
-      g=Math.floor(brightness*10);
-      b=Math.floor(brightness*10);
-    } else if(isCrack){
-      r=Math.floor(brightness*30);
-      g=Math.floor(brightness*10);
-      b=Math.floor(brightness*8);
+    if(nearEnd&&dist<5){
+      /* fond rouge sang */
+      r=~~(br*190+15);g=~~(br*8);b=~~(br*5);
+    } else if(crack){
+      r=~~(br*28);g=~~(br*9);b=~~(br*7);
     } else if(blood){
-      r=Math.floor(brightness*160+brightness*40*Math.random());
-      g=0; b=0;
+      r=~~(br*170+br*30*Math.random());g=0;b=0;
     } else {
-      const s=side?0.6:1.0;
-      r=Math.floor(brightness*(75+mold*25)*s);
-      g=Math.floor(brightness*(55+mold*10)*s);
-      b=Math.floor(brightness*(50)*s);
+      const s=side?.58:1;
+      r=~~(br*(72+mold*22)*s);g=~~(br*(52+mold*10)*s);b=~~(br*48*s);
     }
-    return [Math.min(255,r),Math.min(255,g),Math.min(255,b)];
+    return[Math.min(255,r),Math.min(255,g),Math.min(255,b)];
   }
 
   function castFrame(){
-    const W=canvas.width, H=canvas.height;
+    const W=canvas.width,H=canvas.height;
     const img=ctx.createImageData(W,H);
     const data=img.data;
     const bob=Math.sin(bobAngle)*3;
-    const breathBob=Math.sin(breathPhase)*1.2;
-    const totalBob=bob+breathBob;
+    const breath=Math.sin(breathPhase)*1.1;
+    const dy=bob+breath;
+    const near=player.y>(CH-7);
 
-    // Sol/plafond
+    /* sol / plafond */
     for(let y=0;y<H;y++){
-      const isCeil=y<H/2;
-      const rowFrac=Math.abs(y-H/2)/(H/2);
-      const rowDist=(H/2)/(rowFrac+0.0001);
-      const floorBrightness=flashlight
-        ? flashFlicker*Math.max(0,(1-rowDist*0.06))*0.18
-        : 0;
+      const ceil=y<H/2;
+      const frac=Math.abs(y-H/2)/(H/2);
+      const rd=(H/2)/(frac+.0001);
+      const fb=flashlight?flashFlicker*Math.max(0,1-rd*.055)*.16:0;
       for(let x=0;x<W;x++){
+        const n=Math.abs(Math.sin(x*.038+y*.027)*Math.cos(x*.019-y*.042));
         const i=(y*W+x)*4;
-        if(isCeil){
-          // Plafond : béton sombre + taches
-          const n=Math.abs(Math.sin(x*0.037+y*0.027)*Math.cos(x*0.019-y*0.041));
-          data[i]  =Math.floor(floorBrightness*(30+n*15));
-          data[i+1]=Math.floor(floorBrightness*(20+n*8));
-          data[i+2]=Math.floor(floorBrightness*(18+n*6));
+        if(ceil){
+          data[i]=~~(fb*(28+n*12));data[i+1]=~~(fb*(18+n*7));data[i+2]=~~(fb*(16+n*5));
         } else {
-          // Sol : béton + sang épandu
-          const n2=Math.abs(Math.sin(x*0.051+y*0.031)*Math.cos(x*0.023));
-          const isBloodPool=n2>0.72&&rowDist<5;
-          if(isBloodPool&&flashlight){
-            data[i]  =Math.floor(floorBrightness*200);
-            data[i+1]=0; data[i+2]=0;
-          } else {
-            data[i]  =Math.floor(floorBrightness*(45+n2*20));
-            data[i+1]=Math.floor(floorBrightness*(30+n2*8));
-            data[i+2]=Math.floor(floorBrightness*(25));
-          }
+          const bp=n>.73&&rd<4.5;
+          if(bp&&flashlight){data[i]=~~(fb*180);data[i+1]=0;data[i+2]=0;}
+          else{data[i]=~~(fb*(42+n*18));data[i+1]=~~(fb*(28+n*7));data[i+2]=~~(fb*23);}
         }
         data[i+3]=255;
       }
     }
 
-    // Murs — raycasting DDA
-    const isNearEnd=player.y>(CH-6);
+    /* murs DDA */
     for(let col=0;col<RAYS;col++){
-      const rayAngle=player.angle-FOV/2+(col/RAYS)*FOV;
-      const cosA=Math.cos(rayAngle), sinA=Math.sin(rayAngle);
-      let mx2=Math.floor(player.x), my2=Math.floor(player.y);
-      const dDX=Math.abs(1/cosA), dDY=Math.abs(1/sinA);
-      const sX=cosA<0?-1:1, sY=sinA<0?-1:1;
-      let sdX=cosA<0?(player.x-mx2)*dDX:(mx2+1-player.x)*dDX;
-      let sdY=sinA<0?(player.y-my2)*dDY:(my2+1-player.y)*dDY;
-      let side=0, hit=false;
-
-      for(let step=0;step<MAX_D&&!hit;step++){
-        if(sdX<sdY){sdX+=dDX;mx2+=sX;side=0;}
-        else{sdY+=dDY;my2+=sY;side=1;}
-        const mi=my2*CW+mx2;
-        if(mi>=0&&mi<map.length&&map[mi]===1) hit=true;
-        // Fin du couloir = mur fictif
-        if(my2>=CH-1) hit=true;
+      const ra=player.angle-FOV/2+(col/RAYS)*FOV;
+      const ca=Math.cos(ra),sa=Math.sin(ra);
+      let mx=~~player.x,my=~~player.y;
+      const ddx=Math.abs(1/ca),ddy=Math.abs(1/sa);
+      const sx=ca<0?-1:1,sy=sa<0?-1:1;
+      let sdx=ca<0?(player.x-mx)*ddx:(mx+1-player.x)*ddx;
+      let sdy=sa<0?(player.y-my)*ddy:(my+1-player.y)*ddy;
+      let side=0,hit=false;
+      for(let i=0;i<MAX_D&&!hit;i++){
+        if(sdx<sdy){sdx+=ddx;mx+=sx;side=0;}
+        else{sdy+=ddy;my+=sy;side=1;}
+        const mi=my*CW+mx;
+        if(my>=CH-1||mi>=0&&mi<map.length&&map[mi]===1)hit=true;
       }
-      if(!hit) continue;
-
-      const dist=side===0
-        ?(mx2-player.x+(1-sX)/2)/cosA
-        :(my2-player.y+(1-sY)/2)/sinA;
-      const d=Math.abs(dist);
-      const wx=side===0?player.y+d*sinA:player.x+d*cosA;
-      const wallX=wx-Math.floor(wx);
-
-      const wallH=Math.min(H*3,Math.floor(H/d));
-      const drawS=Math.floor((H-wallH)/2+totalBob);
-      const drawE=drawS+wallH;
-      const sX2=Math.floor(col*W/RAYS);
-      const colW=Math.ceil(W/RAYS)+1;
-      const [r,g,b]=wallShade(d,side,wallX,isNearEnd);
-
-      for(let row=drawS;row<drawE&&row<H;row++){
-        if(row<0) continue;
-        for(let dx=0;dx<colW&&sX2+dx<W;dx++){
-          const i=(row*W+(sX2+dx))*4;
+      if(!hit)continue;
+      const dist=Math.abs(side===0?(mx-player.x+(1-sx)/2)/ca:(my-player.y+(1-sy)/2)/sa);
+      const wx=(side===0?player.y+dist*sa:player.x+dist*ca)-Math.floor(side===0?player.y+dist*sa:player.x+dist*ca);
+      const wh=Math.min(H*3,~~(H/dist));
+      const ds=~~((H-wh)/2+dy),de=ds+wh;
+      const sx2=~~(col*W/RAYS),cw=~~(W/RAYS)+1;
+      const[r,g,b]=wallShade(dist,side,wx,near);
+      for(let row=ds;row<de&&row<H;row++){
+        if(row<0)continue;
+        for(let dx=0;dx<cw&&sx2+dx<W;dx++){
+          const i=(row*W+(sx2+dx))*4;
           data[i]=r;data[i+1]=g;data[i+2]=b;data[i+3]=255;
         }
       }
     }
 
-    // Message gravé sur le mur proche
     ctx.putImageData(img,0,0);
 
-    // Texte "SORTEZ" gravé sur les murs quand on s'approche
-    if(player.y>CH*0.4&&flashlight){
-      const alpha=Math.min(1,(player.y-CH*0.4)/(CH*0.2))*flashFlicker;
-      ctx.save();
-      ctx.globalAlpha=alpha*0.35;
-      ctx.font=`bold ${Math.floor(H*0.04)}px 'Courier New'`;
-      ctx.fillStyle='#8b0000';
-      ctx.textAlign='center';
-      ctx.fillText('FAITES DEMI-TOUR', W*0.5, H*0.35);
-      ctx.restore();
+    /* textes gravés */
+    if(player.y>CH*.38&&flashlight){
+      const al=Math.min(1,(player.y-CH*.38)/(CH*.18))*flashFlicker*.4;
+      ctx.save();ctx.globalAlpha=al;
+      ctx.font=`bold ${~~(H*.038)}px 'Courier New'`;
+      ctx.fillStyle='#8b0000';ctx.textAlign='center';
+      ctx.fillText('FAITES DEMI-TOUR',W*.5,H*.32);ctx.restore();
     }
-    if(player.y>CH*0.65&&flashlight){
-      const alpha=Math.min(1,(player.y-CH*0.65)/(CH*0.15))*flashFlicker;
-      ctx.save();
-      ctx.globalAlpha=alpha*0.5;
-      ctx.font=`bold ${Math.floor(H*0.05)}px 'Courier New'`;
-      ctx.fillStyle='#cc0000';
-      ctx.textAlign='center';
-      ctx.fillText('IL ATTEND', W*0.5, H*0.65);
-      ctx.restore();
+    if(player.y>CH*.62&&flashlight){
+      const al=Math.min(1,(player.y-CH*.62)/(CH*.15))*flashFlicker*.55;
+      ctx.save();ctx.globalAlpha=al;
+      ctx.font=`bold ${~~(H*.046)}px 'Courier New'`;
+      ctx.fillStyle='#cc0000';ctx.textAlign='center';
+      ctx.fillText('IL VOUS ATTEND',W*.5,H*.64);ctx.restore();
     }
   }
 
-  let lastTs=0, stepAcc=0;
+  /* ── SILHOUETTE ── */
+  function drawSilhouette(){
+    const w=silCanvas.width,h=silCanvas.height;
+    silCtx.clearRect(0,0,w,h);
+    silCtx.fillStyle='#000';silCtx.fillRect(0,0,w,h);
+
+    /* lumière ambiante derrière */
+    const grad=silCtx.createRadialGradient(w/2,h*.35,10,w/2,h*.4,180);
+    grad.addColorStop(0,'rgba(60,0,0,.9)');
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    silCtx.fillStyle=grad;silCtx.fillRect(0,0,w,h);
+
+    /* silhouette noire — forme humaine de dos */
+    silCtx.fillStyle='#0a0a0a';
+
+    /* tête */
+    silCtx.beginPath();
+    silCtx.ellipse(w/2,h*.18,28,35,0,0,Math.PI*2);
+    silCtx.fill();
+
+    /* cou */
+    silCtx.fillRect(w/2-10,h*.22,20,28);
+
+    /* épaules + torse */
+    silCtx.beginPath();
+    silCtx.moveTo(w/2-70,h*.28);
+    silCtx.bezierCurveTo(w/2-75,h*.3,w/2-60,h*.6,w/2-45,h*.68);
+    silCtx.lineTo(w/2+45,h*.68);
+    silCtx.bezierCurveTo(w/2+60,h*.6,w/2+75,h*.3,w/2+70,h*.28);
+    silCtx.bezierCurveTo(w/2+55,h*.24,w/2+30,h*.22,w/2,h*.22);
+    silCtx.bezierCurveTo(w/2-30,h*.22,w/2-55,h*.24,w/2-70,h*.28);
+    silCtx.fill();
+
+    /* bras gauche */
+    silCtx.beginPath();
+    silCtx.moveTo(w/2-65,h*.3);
+    silCtx.bezierCurveTo(w/2-90,h*.42,w/2-88,h*.58,w/2-72,h*.7);
+    silCtx.bezierCurveTo(w/2-62,h*.74,w/2-52,h*.73,w/2-48,h*.68);
+    silCtx.bezierCurveTo(w/2-55,h*.56,w/2-58,h*.42,w/2-55,h*.32);
+    silCtx.fill();
+
+    /* bras droit */
+    silCtx.beginPath();
+    silCtx.moveTo(w/2+65,h*.3);
+    silCtx.bezierCurveTo(w/2+90,h*.42,w/2+88,h*.58,w/2+72,h*.7);
+    silCtx.bezierCurveTo(w/2+62,h*.74,w/2+52,h*.73,w/2+48,h*.68);
+    silCtx.bezierCurveTo(w/2+55,h*.56,w/2+58,h*.42,w/2+55,h*.32);
+    silCtx.fill();
+
+    /* jambe gauche */
+    silCtx.beginPath();
+    silCtx.moveTo(w/2-38,h*.67);
+    silCtx.bezierCurveTo(w/2-42,h*.78,w/2-38,h*.9,w/2-32,h*.99);
+    silCtx.lineTo(w/2-10,h*.99);
+    silCtx.bezierCurveTo(w/2-12,h*.88,w/2-16,h*.76,w/2-14,h*.67);
+    silCtx.fill();
+
+    /* jambe droite */
+    silCtx.beginPath();
+    silCtx.moveTo(w/2+38,h*.67);
+    silCtx.bezierCurveTo(w/2+42,h*.78,w/2+38,h*.9,w/2+32,h*.99);
+    silCtx.lineTo(w/2+10,h*.99);
+    silCtx.bezierCurveTo(w/2+12,h*.88,w/2+16,h*.76,w/2+14,h*.67);
+    silCtx.fill();
+
+    /* halo rouge autour */
+    const halo=silCtx.createRadialGradient(w/2,h*.5,60,w/2,h*.5,200);
+    halo.addColorStop(0,'rgba(0,0,0,0)');
+    halo.addColorStop(.7,'rgba(0,0,0,0)');
+    halo.addColorStop(1,'rgba(0,0,0,.9)');
+    silCtx.fillStyle=halo;silCtx.fillRect(0,0,w,h);
+  }
+
+  /* ── GAME LOOP ── */
   function loop(ts){
     if(!active||!started){frameId=null;return;}
-    const dt=Math.min(50,ts-lastTs); lastTs=ts;
+    const dt=Math.min(50,ts-lastTs);lastTs=ts;
+    canvas.width=window.innerWidth;canvas.height=window.innerHeight;
 
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
-
-    // Mouvement
-    const spd=0.04;
-    const rot=0.035;
+    const spd=.042,rot=.036;
     let moving=false;
     if(keys['z']||keys['Z']||keys['ArrowUp']){
       const nx=player.x+Math.cos(player.angle)*spd;
       const ny=player.y+Math.sin(player.angle)*spd;
-      const mi=Math.floor(ny)*CW+Math.floor(nx);
-      if(mi>=0&&mi<map.length&&map[mi]===0){
-        player.x=nx;player.y=ny;moving=true;
-      }
+      const mi=~~ny*CW+~~nx;
+      if(mi>=0&&mi<map.length&&map[mi]===0){player.x=nx;player.y=ny;moving=true;}
     }
     if(keys['s']||keys['S']||keys['ArrowDown']){
       const nx=player.x-Math.cos(player.angle)*spd;
       const ny=player.y-Math.sin(player.angle)*spd;
-      const mi=Math.floor(ny)*CW+Math.floor(nx);
-      if(mi>=0&&mi<map.length&&map[mi]===0){
-        player.x=nx;player.y=ny;moving=true;
-      }
+      const mi=~~ny*CW+~~nx;
+      if(mi>=0&&mi<map.length&&map[mi]===0){player.x=nx;player.y=ny;moving=true;}
     }
-    if(keys['q']||keys['Q']||keys['ArrowLeft']) player.angle-=rot;
-    if(keys['d']||keys['D']||keys['ArrowRight']) player.angle+=rot;
+    if(keys['q']||keys['Q']||keys['ArrowLeft'])player.angle-=rot;
+    if(keys['d']||keys['D']||keys['ArrowRight'])player.angle+=rot;
 
-    // Progression 0..1
-    pos=Math.max(0,Math.min(1,(player.y-1.5)/(CORRIDOR_LENGTH-2)));
-    corrPBar.style.width=(pos*100)+'%';
-
-    // Rythme cardiaque accélère
-    heartRate=2200-pos*1600;
+    pos=Math.max(0,Math.min(1,(player.y-1.5)/(CH-4)));
+    progBar.style.width=(pos*100)+'%';
+    heartRate=2200-pos*1700;
     heartTimer+=dt;
-    if(heartTimer>heartRate){playHeartbeat(heartRate);heartTimer=0;}
-
-    // Chuchotements
-    whisperTimer-=dt;
-    if(whisperTimer<0){
-      // son de whisper : bruit filtré
-      try{
-        const a=getAudio();
-        const b=a.createBuffer(1,a.sampleRate*1.2,a.sampleRate);
-        const d=b.getChannelData(0);
-        for(let i=0;i<d.length;i++){
-          const env=Math.sin(Math.PI*i/d.length);
-          d[i]=(Math.random()*2-1)*0.02*env;
-        }
-        const s=a.createBufferSource();
-        const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=600+Math.random()*500;f.Q.value=0.4;
-        const g=a.createGain();g.gain.value=0.4;
-        s.buffer=b;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
-      }catch(e){}
-      whisperTimer=Math.random()*12000+6000;
-    }
-
-    // Bob
-    if(moving){bobAngle+=0.14;}else{bobAngle*=0.88;}
-
-    // Respiration
-    breathPhase+=0.018;
-
-    // Pas
-    if(moving){
-      stepAcc+=dt;
-      if(stepAcc>stepCooldown){playStep();stepAcc=0;stepCooldown=380-pos*120;}
-    } else stepAcc=0;
-
-    // Flicker lampe
-    flashFlicker=0.85+Math.sin(ts*0.003)*0.08+Math.random()*0.07;
-    if(pos>0.7&&Math.random()<0.002){
-      flashlight=false;
-      setTimeout(()=>{flashlight=true;},60+Math.random()*180);
-    }
-    darkOverlay.style.opacity=flashlight?0:0.97;
-
-    // Flash sang aléatoire
-    if(Math.random()<0.001+pos*0.003){bloodAlpha=0.5+Math.random()*0.3;}
-    bloodAlpha*=0.88;
-    bloodFlashEl.style.opacity=bloodAlpha;
-
-    // Drone monte
-    rampDrone(0.04+pos*0.08, 0.5);
-
-    // Grain
-    grainTimer+=dt;
-    if(grainTimer>40){renderGrain();grainTimer=0;}
-
+    if(heartTimer>heartRate){playHeartbeat();heartTimer=0;}
+    whisperT-=dt;
+    if(whisperT<0){playWhisper();whisperT=Math.random()*10000+5000;}
+    if(moving){bobAngle+=.14;}else{bobAngle*=.87;}
+    breathPhase+=.017;
+    if(moving){stepAcc+=dt;if(stepAcc>stepCd){playStep();stepAcc=0;stepCd=370-pos*110;}}
+    else stepAcc=0;
+    flashFlicker=.83+Math.sin(ts*.0025)*.09+Math.random()*.08;
+    if(pos>.65&&Math.random()<.003){flashlight=false;setTimeout(()=>{flashlight=true;},70+~~(Math.random()*200));}
+    darkEl.style.opacity=flashlight?0:.98;
+    if(Math.random()<.001+pos*.004){bloodAlpha=.45+Math.random()*.3;}
+    bloodAlpha*=.87;bloodEl.style.opacity=bloodAlpha;
+    rampDrone(.04+pos*.09,.4);
+    grainT+=dt;if(grainT>35){renderGrain();grainT=0;}
     castFrame();
 
-    // Fin du couloir
-    if(!endReached && player.y >= CH-2.5){
-      endReached=true;
-      triggerEnding();
-      return;
-    }
-
+    if(!endReached&&player.y>=CH-2.8){endReached=true;triggerEnd();return;}
     frameId=requestAnimationFrame(loop);
   }
 
   function renderGrain(){
-    grainC.width=320;grainC.height=240;
-    const nd=grainCtx.createImageData(320,240);
+    grainC.width=280;grainC.height=200;
+    const nd=grainCtx.createImageData(280,200);
     for(let i=0;i<nd.data.length;i+=4){
-      const v=Math.random()*255;
-      nd.data[i]=v;nd.data[i+1]=v;nd.data[i+2]=v;nd.data[i+3]=18+Math.random()*20;
+      const v=~~(Math.random()*255);
+      nd.data[i]=v;nd.data[i+1]=v;nd.data[i+2]=v;nd.data[i+3]=15+~~(Math.random()*20);
     }
     grainCtx.putImageData(nd,0,0);
   }
 
-  // ── FIN DU COULOIR ─────────────────────────────
-  function triggerEnding(){
+  /* ── FIN : silhouette ── */
+  function triggerEnd(){
     if(frameId){cancelAnimationFrame(frameId);frameId=null;}
     playScream();
-    // Écran rouge brutal
-    bloodFlashEl.style.transition='none';
-    bloodFlashEl.style.opacity='1';
-    bloodFlashEl.style.background='rgba(139,0,0,0.95)';
+    bloodEl.style.transition='none';
+    bloodEl.style.opacity='1';
+    bloodEl.style.background='rgba(100,0,0,.9)';
     setTimeout(()=>{
-      bloodFlashEl.style.opacity='0';
-      bloodFlashEl.style.background='rgba(120,0,0,.2)';
-      bloodFlashEl.style.transition='opacity .05s';
-      // Afficher l'écran de fin
+      bloodEl.style.transition='opacity .1s';
+      bloodEl.style.opacity='0';
+      bloodEl.style.background='rgba(120,0,0,.25)';
+      drawSilhouette();
       corrEnd.style.display='flex';
-      setTimeout(()=>{corrEnd.style.opacity='1';},50);
-    },600);
+      setTimeout(()=>{
+        corrEnd.style.opacity='1';
+        setTimeout(()=>{endPrompt.style.opacity='1';canInteract=true;},2500);
+      },100);
+    },700);
   }
 
-  // Bouton "accepter et continuer" → retour site corrompu
-  endBtn.addEventListener('click',function(){
-    closeCorridor();
-    setTimeout(()=>{corruptSite();},300);
-  });
-
+  /* ── CORRUPTION EXTREME ── */
   function corruptSite(){
     document.body.classList.add('corrupted');
-    // Titre qui glitch
-    const title=document.querySelector('.hero-title');
-    if(title){
-      const orig=title.innerHTML;
-      let glitchCount=0;
-      const glitchInterval=setInterval(()=>{
-        if(glitchCount>8){clearInterval(glitchInterval);title.innerHTML=orig;return;}
-        title.innerHTML=orig.replace('THIBAULT','T̷H̵I̴B̵A̶U̸L̷T').replace('FATELA','F̸A̵T̴E̷L̵A̶');
-        setTimeout(()=>{title.innerHTML=orig;},80);
-        glitchCount++;
-      },300);
+
+    /* Glitch titre */
+    const h1=document.querySelector('.hero-title');
+    if(h1){
+      const orig=h1.innerHTML;
+      let n=0;
+      const iv=setInterval(()=>{
+        if(n++>12){clearInterval(iv);h1.innerHTML=orig;return;}
+        h1.innerHTML=orig
+          .replace('THIBAULT','T̸͓̋H̵̰̎Ḯ̷̲B̸̯̆A̵̜͑U̸͙͌L̴̩͋T̸͍̂')
+          .replace('FATELA','F̷̘̈Ȧ̴͚T̶̟̃Ë̷̲L̸̨̽Â̵̗');
+        setTimeout(()=>{h1.innerHTML=orig;},70);
+      },250);
     }
-    // Textes qui se transforment
+
+    /* Nav logo */
+    const nl=document.querySelector('.nav-logo');
+    if(nl)setTimeout(()=>{nl.textContent='[CORROMPU]';},1800);
+
+    /* Sections qui bougent */
     setTimeout(()=>{
-      const nav=document.querySelector('.nav-logo');
-      if(nav) nav.textContent='T.F̸A̶T̵E̶L̴A̷';
-    },2000);
-    // Son ambiant bas dans la page
+      document.querySelectorAll('.about-big-name,.colas-big-title,.projets-title,.jlf-big-title').forEach((el,i)=>{
+        setTimeout(()=>{
+          el.style.transition='color .1s';
+          el.style.color='#8b0000';
+          setTimeout(()=>{el.style.color='';},200);
+        },i*400);
+      });
+    },1000);
+
+    /* Messages fantômes flottants */
+    const msgs=['IL EST LÀ','VOUS NE PARTIREZ PLUS','IL VOUS A VU','SORTEZ','TROP TARD','IL EST EN VOUS'];
+    let mi=0;
+    ghostMsg.style.display='block';
+    const showGhost=()=>{
+      ghostMsg.textContent=msgs[mi%msgs.length];
+      ghostMsg.style.left=~~(Math.random()*70+5)+'vw';
+      ghostMsg.style.top=~~(Math.random()*70+10)+'vh';
+      mi++;
+      setTimeout(showGhost,Math.random()*4000+2000);
+    };
+    setTimeout(showGhost,800);
+
+    /* Son grave continu */
     try{
       const a=new(window.AudioContext||window.webkitAudioContext)();
-      const o=a.createOscillator();
-      const g=a.createGain();
-      o.type='sine';o.frequency.value=18;
-      g.gain.value=0.03;
+      const o=a.createOscillator(),g=a.createGain();
+      o.type='sine';o.frequency.value=16;g.gain.value=.025;
       o.connect(g);g.connect(a.destination);o.start();
     }catch(e){}
   }
 
-  // ── OPEN / CLOSE ───────────────────────────────
-  trigger.addEventListener('click',function(){
-    if(active) return;
+  /* ── EVENTS ── */
+  trigger.addEventListener('click',()=>{
+    if(active)return;
     active=true;
     corridor.style.display='block';
     document.body.style.overflow='hidden';
-    setTimeout(()=>{enterContent.style.opacity='1';},400);
+    setTimeout(()=>{enterTxt.style.opacity='1';},400);
   });
 
-  function onKeyDown(e){
-    if(!active) return;
-    if(e.key==='Escape'){
-      if(corrEnd.style.display==='flex'&&corrEnd.style.opacity==='1'){
-        closeCorridor();corruptSite();return;
-      }
-      closeCorridor();return;
+  document.addEventListener('keydown',e=>{
+    if(!active)return;
+    if(e.key==='Escape'){closeCorridor();return;}
+    if(e.key==='e'||e.key==='E'){
+      if(canInteract){closeCorridor();setTimeout(corruptSite,300);}
+      return;
     }
-    if(!started&&active){
-      startGame();
-    }
+    if(!started){startGame();}
     keys[e.key]=true;
-    if(e.key==='f'||e.key==='F') flashlight=!flashlight;
+    if(e.key==='f'||e.key==='F')flashlight=!flashlight;
     e.preventDefault();
-  }
-  function onKeyUp(e){keys[e.key]=false;}
-
-  document.addEventListener('keydown',onKeyDown);
-  document.addEventListener('keyup',onKeyUp);
+  });
+  document.addEventListener('keyup',e=>{keys[e.key]=false;});
 
   function startGame(){
     started=true;
-    enterScreen.style.transition='opacity 1.5s';
-    enterScreen.style.opacity='0';
+    enterDiv.style.transition='opacity 1.5s';enterDiv.style.opacity='0';
     setTimeout(()=>{
-      enterScreen.style.display='none';
-      corrHud.style.opacity='1';
-      corrPWrap.style.opacity='0.6';
+      enterDiv.style.display='none';
+      corrHud.style.opacity='1';progWrap.style.opacity='.6';
     },1500);
-    playDrone();
-    lastTs=performance.now();
+    playDrone();lastTs=performance.now();
     frameId=requestAnimationFrame(loop);
   }
 
   function closeCorridor(){
-    active=false;started=false;endReached=false;
+    active=false;started=false;endReached=false;canInteract=false;
     if(frameId){cancelAnimationFrame(frameId);frameId=null;}
     corridor.style.display='none';
     document.body.style.overflow='';
-    // Reset
-    corrHud.style.opacity='0';
-    corrPWrap.style.opacity='0';
-    corrPBar.style.width='0%';
-    corrEnd.style.display='none';corrEnd.style.opacity='0';
-    enterScreen.style.display='flex';enterScreen.style.opacity='1';
-    enterContent.style.opacity='0';
-    bloodFlashEl.style.opacity='0';
-    darkOverlay.style.opacity='0';
-    keys={};
-    player={x:1.5,y:1.5,angle:-Math.PI/2};
+    corrHud.style.opacity='0';progWrap.style.opacity='0';progBar.style.width='0%';
+    corrEnd.style.display='none';corrEnd.style.opacity='0';endPrompt.style.opacity='0';
+    enterDiv.style.display='flex';enterDiv.style.opacity='1';enterTxt.style.opacity='0';
+    bloodEl.style.opacity='0';darkEl.style.opacity='0';
+    keys={};player={x:1.5,y:1.5,angle:-Math.PI/2};
     pos=0;bobAngle=0;heartTimer=0;heartRate=2200;
     bloodAlpha=0;flashlight=true;flashFlicker=1;
-    whisperTimer=Math.random()*15000+8000;
-    if(audioCtx){try{audioCtx.close();}catch(e){} audioCtx=null;droneNode=null;droneGain=null;}
+    if(audioCtx){try{audioCtx.close();}catch(e){} audioCtx=null;droneGain=null;}
   }
 })();
 </script>
+<!-- ═══════════════ FIN EASTER EGG ═══════════════ -->
 
 </body>
 </html>
