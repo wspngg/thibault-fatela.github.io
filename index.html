@@ -684,391 +684,623 @@ const obs=new IntersectionObserver(entries=>{
 document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
 </script>
 
-<!-- EASTER EGG TRIGGER — bouton caché dans le footer -->
-<div id="egg-trigger" title="" style="position:fixed;bottom:0;right:0;width:30px;height:30px;z-index:600;cursor:default;opacity:0;"></div>
 
-<!-- CORRIDOR OVERLAY -->
-<div id="corridor" style="display:none;position:fixed;inset:0;z-index:9999;background:#000;overflow:hidden;">
-  <canvas id="corr-canvas" style="display:block;width:100%;height:100%;image-rendering:pixelated;"></canvas>
 
-  <!-- UI -->
-  <div id="corr-ui" style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.8rem;pointer-events:none;opacity:0;transition:opacity 1s;z-index:2">
-    <div style="font-family:'Courier New',monospace;font-size:.75rem;letter-spacing:.2em;color:rgba(255,255,255,.25);text-transform:uppercase">ZQSD — Marcher &nbsp;|&nbsp; F — Lampe &nbsp;|&nbsp; ESC — Fuir</div>
+<!-- ═══════════════════════════════════════════════ -->
+<!-- EASTER EGG — Couloir de l'horreur              -->
+<!-- ═══════════════════════════════════════════════ -->
+
+<!-- Trigger invisible — coin bas droit -->
+<div id="egg-trigger" style="position:fixed;bottom:0;right:0;width:40px;height:40px;z-index:600;cursor:default;opacity:0;"></div>
+
+<!-- Overlay couloir -->
+<div id="corridor" style="display:none;position:fixed;inset:0;z-index:9990;background:#000;overflow:hidden;">
+
+  <canvas id="corr-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>
+
+  <!-- Grain statique -->
+  <canvas id="grain-c" style="position:absolute;inset:0;width:100%;height:100%;opacity:.05;pointer-events:none;z-index:2;"></canvas>
+
+  <!-- Vignette -->
+  <div style="position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse 65% 65% at 50% 50%,transparent 30%,rgba(0,0,0,.97) 100%);"></div>
+
+  <!-- Flash sang -->
+  <div id="blood-flash" style="position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;background:rgba(120,0,0,.2);transition:opacity .05s;"></div>
+
+  <!-- Lampe éteinte overlay -->
+  <div id="dark-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:5;background:#000;opacity:0;transition:opacity .3s;"></div>
+
+  <!-- HUD controls -->
+  <div id="corr-hud" style="position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:10;opacity:0;transition:opacity 1.5s;font-family:'Courier New',monospace;font-size:.65rem;letter-spacing:.18em;color:rgba(255,255,255,.2);text-transform:uppercase;white-space:nowrap;pointer-events:none;">
+    ZQSD — avancer &nbsp;·&nbsp; F — lampe &nbsp;·&nbsp; ESC — abandonner
   </div>
 
-  <!-- VIGNETTE -->
-  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 70% at 50% 50%,transparent 40%,rgba(0,0,0,.95) 100%);z-index:1"></div>
+  <!-- Barre de progression couloir -->
+  <div id="corr-progress-wrap" style="position:absolute;top:1.5rem;left:50%;transform:translateX(-50%);z-index:10;opacity:0;transition:opacity 1.5s;width:200px;">
+    <div style="height:1px;background:rgba(255,255,255,.08);width:100%;position:relative;">
+      <div id="corr-progress-bar" style="position:absolute;left:0;top:0;height:100%;width:0%;background:rgba(255,60,60,.4);transition:width .1s;"></div>
+    </div>
+  </div>
 
-  <!-- BLOOD FLICKER OVERLAY -->
-  <div id="blood-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;background:rgba(100,0,0,.15);"></div>
+  <!-- Écran d'entrée -->
+  <div id="corr-enter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:#000;">
+    <div id="enter-content" style="text-align:center;opacity:0;transition:opacity 2s;font-family:'Courier New',monospace;color:#fff;">
+      <div id="enter-warning" style="font-size:clamp(2.5rem,8vw,5rem);color:#8b0000;animation:flkr 2.5s infinite;margin-bottom:1.5rem;">⚠</div>
+      <div style="font-size:clamp(.9rem,2.5vw,1.3rem);letter-spacing:.25em;text-transform:uppercase;line-height:2;">VOUS N'AURIEZ PAS DÛ CLIQUER.</div>
+      <div style="margin-top:2.5rem;font-size:.7rem;letter-spacing:.15em;opacity:.3;">appuyez sur une touche pour entrer...</div>
+    </div>
+  </div>
 
-  <!-- STATIC NOISE -->
-  <canvas id="noise-canvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:.04;pointer-events:none;z-index:4;"></canvas>
-
-  <!-- ENTER SCREEN -->
-  <div id="corr-enter" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:#000;">
-    <div id="enter-text" style="font-family:'Courier New',monospace;color:#fff;font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.3em;text-transform:uppercase;text-align:center;opacity:0;transition:opacity 2s;">
-      <div style="font-size:clamp(2rem,6vw,4rem);margin-bottom:1rem;animation:flicker 3s infinite">⚠</div>
-      VOUS N'AURIEZ PAS DÛ CLIQUER.
-      <div style="font-size:.8rem;margin-top:2rem;opacity:.4;letter-spacing:.15em;">Appuyez sur une touche pour continuer...</div>
+  <!-- Écran FIN — la chose au bout du couloir -->
+  <div id="corr-end" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:25;background:#000;opacity:0;transition:opacity 1s;">
+    <div id="end-content" style="text-align:center;font-family:'Courier New',monospace;color:#fff;max-width:600px;padding:2rem;">
+      <div id="end-face" style="font-size:clamp(4rem,15vw,10rem);line-height:1;animation:faceFlkr .08s infinite;margin-bottom:1rem;">👁</div>
+      <div style="font-size:clamp(1rem,3vw,1.8rem);letter-spacing:.2em;text-transform:uppercase;color:#8b0000;margin-bottom:1rem;animation:flkr 1s infinite;">IL VOUS A VU.</div>
+      <div style="font-size:.8rem;letter-spacing:.12em;opacity:.5;line-height:2;margin-bottom:2.5rem;">vous ne pouvez plus partir.<br>il est maintenant en vous.</div>
+      <button id="end-btn" style="background:none;border:1px solid rgba(139,0,0,.6);color:rgba(255,255,255,.4);font-family:'Courier New',monospace;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;padding:.8rem 2rem;cursor:pointer;transition:all .3s;">
+        accepter et continuer
+      </button>
     </div>
   </div>
 
 </div>
 
 <style>
-@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:0}94%{opacity:1}96%{opacity:0}97%{opacity:1}}
-@keyframes staticPulse{0%,100%{opacity:.04}50%{opacity:.08}}
-#noise-canvas{animation:staticPulse 0.1s infinite}
+@keyframes flkr{0%,100%{opacity:1}88%{opacity:1}89%{opacity:0}91%{opacity:1}95%{opacity:0}97%{opacity:1}}
+@keyframes faceFlkr{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.02) skewX(1deg)}}
+
+/* Site corrompu */
+body.corrupted{
+  animation:bodyGlitch 8s infinite;
+  filter:hue-rotate(0deg);
+}
+@keyframes bodyGlitch{
+  0%,100%{filter:hue-rotate(0deg) saturate(1);transform:none}
+  2%{filter:hue-rotate(180deg) saturate(2) contrast(1.5);transform:skewX(2deg)}
+  2.1%{filter:hue-rotate(0deg) saturate(1);transform:none}
+  15%{filter:hue-rotate(0deg) saturate(1)}
+  15.1%{filter:hue-rotate(90deg) saturate(3);transform:translateX(3px)}
+  15.2%{filter:none;transform:none}
+  40%{filter:none}
+  40.5%{filter:invert(.05) hue-rotate(30deg)}
+  41%{filter:none}
+}
+body.corrupted nav .nav-logo::after{
+  content:" [CORROMPU]";
+  font-size:.5rem;
+  color:#8b0000;
+  animation:flkr .5s infinite;
+}
+body.corrupted .hero-title .line2{
+  -webkit-text-stroke:1px rgba(139,0,0,.4)!important;
+}
+body.corrupted footer .f-right::after{
+  content:" — IL VOUS REGARDE";
+  color:#8b0000;
+  font-size:.6rem;
+  animation:flkr 2s infinite;
+}
+body.corrupted::after{
+  content:"";
+  position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(139,0,0,.015) 2px,rgba(139,0,0,.015) 4px);
+  pointer-events:none;
+  z-index:8000;
+  animation:scanlines 8s linear infinite;
+}
+@keyframes scanlines{from{background-position:0 0}to{background-position:0 100px}}
+body.corrupted #egg-trigger{
+  background:rgba(139,0,0,.05);
+  border:1px solid rgba(139,0,0,.2);
+  border-radius:0;
+}
 </style>
 
 <script>
 (function(){
-  // ── EASTER EGG TRIGGER ──
-  const trigger = document.getElementById('egg-trigger');
+  const trigger  = document.getElementById('egg-trigger');
   const corridor = document.getElementById('corridor');
-  const canvas = document.getElementById('corr-canvas');
-  const ctx = canvas.getContext('2d');
-  const noiseCanvas = document.getElementById('noise-canvas');
-  const noiseCtx = noiseCanvas.getContext('2d');
-  const enterScreen = document.getElementById('corr-enter');
-  const enterText = document.getElementById('enter-text');
-  const corrUI = document.getElementById('corr-ui');
-  const bloodOverlay = document.getElementById('blood-overlay');
+  const canvas   = document.getElementById('corr-canvas');
+  const ctx      = canvas.getContext('2d');
+  const grainC   = document.getElementById('grain-c');
+  const grainCtx = grainC.getContext('2d');
+  const enterScreen  = document.getElementById('corr-enter');
+  const enterContent = document.getElementById('enter-content');
+  const corrHud  = document.getElementById('corr-hud');
+  const corrPWrap= document.getElementById('corr-progress-wrap');
+  const corrPBar = document.getElementById('corr-progress-bar');
+  const bloodFlashEl = document.getElementById('blood-flash');
+  const darkOverlay  = document.getElementById('dark-overlay');
+  const corrEnd  = document.getElementById('corr-end');
+  const endBtn   = document.getElementById('end-btn');
 
-  let active = false, started = false;
-  let pos = 0, bobAngle = 0, breathAngle = 0;
-  let flashlight = false, flashTimer = 0;
-  let keys = {};
-  let ambientStep = 0;
-  let bloodFlash = 0;
-  let whisperTimer = 0;
-  let heartbeatTimer = 0;
-  let heartRate = 400;
-  let noiseData;
+  let active=false, started=false;
+  let keys={};
+  let audioCtx=null;
+  let droneNode=null, droneGain=null;
 
-  // Audio context
-  let audioCtx = null;
+  // ── AUDIO ──────────────────────────────────────
   function getAudio(){
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     return audioCtx;
   }
-
-  function playTone(freq, dur, vol=0.03, type='sine'){
+  function playDrone(){
     try{
-      const a = getAudio();
-      const osc = a.createOscillator();
-      const gain = a.createGain();
-      osc.connect(gain); gain.connect(a.destination);
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, a.currentTime);
-      gain.gain.setValueAtTime(vol, a.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
-      osc.start(); osc.stop(a.currentTime + dur);
+      const a=getAudio();
+      droneGain=a.createGain();
+      droneGain.gain.value=0;
+      const osc1=a.createOscillator(); osc1.type='sawtooth'; osc1.frequency.value=30;
+      const osc2=a.createOscillator(); osc2.type='sine';     osc2.frequency.value=27;
+      const lfo =a.createOscillator(); lfo.type='sine';      lfo.frequency.value=0.08;
+      const lfoG=a.createGain();       lfoG.gain.value=4;
+      lfo.connect(lfoG); lfoG.connect(osc1.frequency);
+      const filt=a.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=200;
+      osc1.connect(filt); osc2.connect(filt); filt.connect(droneGain); droneGain.connect(a.destination);
+      osc1.start(); osc2.start(); lfo.start();
+      droneGain.gain.linearRampToValueAtTime(0.07, a.currentTime+4);
     }catch(e){}
   }
-
-  function playFootstep(){
+  function rampDrone(vol, dur=2){
+    if(!droneGain||!audioCtx) return;
+    droneGain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime+dur);
+  }
+  function playStep(){
     try{
-      const a = getAudio();
-      const buf = a.createBuffer(1,a.sampleRate*0.08,a.sampleRate);
-      const d = buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2)*0.4;
-      const src = a.createBufferSource();
-      const gain = a.createGain();
-      const filter = a.createBiquadFilter();
-      filter.type='lowpass'; filter.frequency.value=300;
-      src.buffer=buf; src.connect(filter); filter.connect(gain); gain.connect(a.destination);
-      gain.gain.value=0.5;
-      src.start();
+      const a=getAudio();
+      const b=a.createBuffer(1,a.sampleRate*0.09,a.sampleRate);
+      const d=b.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)*0.5;
+      const s=a.createBufferSource();
+      const f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=280;
+      const g=a.createGain(); g.gain.value=0.55;
+      s.buffer=b; s.connect(f); f.connect(g); g.connect(a.destination); s.start();
     }catch(e){}
   }
-
-  function playHeartbeat(){
-    playTone(60,0.1,0.08,'sine');
-    setTimeout(()=>playTone(55,0.08,0.06,'sine'),120);
-  }
-
-  function playWhisper(){
+  function playScream(){
     try{
-      const a = getAudio();
-      const dur = 1.5;
-      const buf = a.createBuffer(1,a.sampleRate*dur,a.sampleRate);
-      const d = buf.getChannelData(0);
+      const a=getAudio();
+      const b=a.createBuffer(1,a.sampleRate*0.8,a.sampleRate);
+      const d=b.getChannelData(0);
       for(let i=0;i<d.length;i++){
-        const env = Math.sin(Math.PI*i/d.length);
-        d[i]=(Math.random()*2-1)*0.015*env;
+        const t=i/a.sampleRate;
+        const env=Math.max(0,1-t*1.5);
+        d[i]=(Math.random()*2-1)*env*0.4+Math.sin(t*880*Math.PI*2)*env*0.3;
       }
-      const src = a.createBufferSource();
-      const gain = a.createGain();
-      const filter = a.createBiquadFilter();
-      filter.type='bandpass'; filter.frequency.value=800+Math.random()*400; filter.Q.value=0.5;
-      src.buffer=buf; src.connect(filter); filter.connect(gain); gain.connect(a.destination);
-      gain.gain.value=0.3;
-      src.start();
+      const s=a.createBufferSource();
+      const g=a.createGain(); g.gain.value=0.6;
+      s.buffer=b; s.connect(g); g.connect(a.destination); s.start();
+    }catch(e){}
+  }
+  function playHeartbeat(rate){
+    try{
+      const a=getAudio();
+      function beat(){
+        const b=a.createBuffer(1,a.sampleRate*0.12,a.sampleRate);
+        const d=b.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=Math.sin(i/d.length*Math.PI)*Math.sin(i*0.8)*0.35;
+        const s=a.createBufferSource();
+        const g=a.createGain(); g.gain.value=0.5;
+        s.buffer=b; s.connect(g); g.connect(a.destination); s.start();
+      }
+      beat();
+      setTimeout(beat, 130);
     }catch(e){}
   }
 
-  // ── RAYCASTER ──
-  const MAP_W = 8, MAP_H = 8;
-  const map = [
-    1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,1,
-    1,0,1,0,1,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,1,0,1,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,1,1,1,1,1,1,1,
-  ];
+  // ── RAYCASTER — couloir DROIT infini ──────────
+  // Map: couloir droit, long (64 cases), murs sur les côtés
+  const CW=4, CH=70;
+  const map=[];
+  for(let y=0;y<CH;y++){
+    for(let x=0;x<CW;x++){
+      if(x===0||x===CW-1) map.push(1); // murs latéraux
+      else map.push(0);                  // couloir vide
+    }
+  }
 
-  let player = {x:1.5, y:1.5, angle:0, speed:0};
-  const FOV = Math.PI/3;
-  const RAYS = 320;
-  const MAX_DEPTH = 20;
+  const CORRIDOR_LENGTH = CH - 3; // fond du couloir
 
-  // Wall texture procedural
-  function getWallColor(dist, side, wallX, rayAngle){
-    const base = flashlight ? 0.9 : 0.0;
-    const brightness = flashlight
-      ? Math.max(0, base - dist * (flashlight ? 0.09 : 0.25))
-      : Math.max(0, 0.04 - dist * 0.008);
+  let player={x:1.5, y:1.5, angle:-Math.PI/2}; // regarde vers le haut (y négatif = avancer)
+  const FOV=Math.PI/3.2;
+  const RAYS=480;
+  const MAX_D=80;
 
-    // Crack pattern on wall
-    const crackNoise = Math.sin(wallX*47.3)*Math.cos(wallX*13.7+dist*3.1);
-    const isCrack = crackNoise > 0.85;
+  // État
+  let pos=0; // 0..1 position dans le couloir
+  let bobAngle=0;
+  let flashlight=true;
+  let flashFlicker=1.0;
+  let heartTimer=0, heartRate=2200;
+  let bloodAlpha=0;
+  let lastStep=0, stepCooldown=350;
+  let endReached=false;
+  let grainTimer=0;
+  let breathPhase=0;
+  let whisperTimer=Math.random()*15000+8000;
+  let endFadeTimer=-1;
+  let frameId=null;
 
-    let r, g, b;
-    if(isCrack){
-      r = Math.floor(brightness * 60 * (1-dist/MAX_DEPTH));
-      g = 0; b = 0;
+  // Textures wall procédurales
+  function wallShade(dist, side, wx, isEnd){
+    const maxLight = flashlight ? flashFlicker : 0;
+    const attenuation = 1/(1+dist*dist*0.08);
+    let brightness = maxLight * attenuation;
+
+    // Stries verticales — béton fissuré
+    const crack1 = Math.abs(Math.sin(wx*61.3+side*3.7));
+    const crack2 = Math.abs(Math.sin(wx*23.1)*Math.cos(wx*7.3));
+    const isCrack = crack1 > 0.96 || crack2 > 0.97;
+
+    // Taches humidité
+    const mold = Math.pow(Math.abs(Math.sin(wx*14.2)*Math.cos(wx*5.7)),3)*0.5;
+    // Sang
+    const blood= Math.abs(Math.sin(wx*37.9)) > 0.97 && Math.abs(Math.cos(wx*11.3))>0.6;
+
+    let r,g,b;
+    if(isEnd && dist<4){
+      // Le fond du couloir : rouge profond
+      r=Math.floor(brightness*180+20);
+      g=Math.floor(brightness*10);
+      b=Math.floor(brightness*10);
+    } else if(isCrack){
+      r=Math.floor(brightness*30);
+      g=Math.floor(brightness*10);
+      b=Math.floor(brightness*8);
+    } else if(blood){
+      r=Math.floor(brightness*160+brightness*40*Math.random());
+      g=0; b=0;
     } else {
-      const stain = Math.abs(Math.sin(wallX*23.1+side*5.7)) * 0.3;
-      const mold = Math.abs(Math.cos(wallX*11.3)*Math.sin(dist*2.1)) * 0.2;
-      r = Math.floor(brightness * (80 + stain*40) * (side ? 0.7 : 1));
-      g = Math.floor(brightness * (55 + mold*20) * (side ? 0.7 : 1));
-      b = Math.floor(brightness * (50) * (side ? 0.7 : 1));
+      const s=side?0.6:1.0;
+      r=Math.floor(brightness*(75+mold*25)*s);
+      g=Math.floor(brightness*(55+mold*10)*s);
+      b=Math.floor(brightness*(50)*s);
     }
-
-    // Blood drips
-    const bloodDrip = Math.abs(Math.sin(wallX*31.7)) > 0.95 && dist < 4;
-    if(bloodDrip && brightness > 0.01){
-      r = Math.min(255, r + Math.floor(brightness * 120));
-      g = Math.max(0, g - 20);
-      b = Math.max(0, b - 20);
-    }
-
-    return [r,g,b];
+    return [Math.min(255,r),Math.min(255,g),Math.min(255,b)];
   }
 
-  function castRays(){
-    const W = canvas.width, H = canvas.height;
-    const imgData = ctx.createImageData(W, H);
-    const data = imgData.data;
+  function castFrame(){
+    const W=canvas.width, H=canvas.height;
+    const img=ctx.createImageData(W,H);
+    const data=img.data;
+    const bob=Math.sin(bobAngle)*3;
+    const breathBob=Math.sin(breathPhase)*1.2;
+    const totalBob=bob+breathBob;
 
-    // Floor/ceiling
+    // Sol/plafond
     for(let y=0;y<H;y++){
-      const isFloor = y > H/2;
-      const rowDist = isFloor
-        ? (H/2) / (y - H/2 + 0.001)
-        : (H/2) / (H/2 - y + 0.001);
-
+      const isCeil=y<H/2;
+      const rowFrac=Math.abs(y-H/2)/(H/2);
+      const rowDist=(H/2)/(rowFrac+0.0001);
+      const floorBrightness=flashlight
+        ? flashFlicker*Math.max(0,(1-rowDist*0.06))*0.18
+        : 0;
       for(let x=0;x<W;x++){
-        const noise1 = Math.abs(Math.sin(x*0.1+y*0.07+pos*0.3)*Math.cos(x*0.13-y*0.11));
-        const brightness = flashlight
-          ? Math.max(0, 0.15 - rowDist * 0.05) * (0.7 + noise1*0.3)
-          : Math.max(0, 0.02 - rowDist * 0.008);
-
-        const idx = (y*W+x)*4;
-        if(isFloor){
-          data[idx]   = Math.floor(brightness * 60);
-          data[idx+1] = Math.floor(brightness * 40);
-          data[idx+2] = Math.floor(brightness * 35);
+        const i=(y*W+x)*4;
+        if(isCeil){
+          // Plafond : béton sombre + taches
+          const n=Math.abs(Math.sin(x*0.037+y*0.027)*Math.cos(x*0.019-y*0.041));
+          data[i]  =Math.floor(floorBrightness*(30+n*15));
+          data[i+1]=Math.floor(floorBrightness*(20+n*8));
+          data[i+2]=Math.floor(floorBrightness*(18+n*6));
         } else {
-          data[idx]   = Math.floor(brightness * 20);
-          data[idx+1] = Math.floor(brightness * 15);
-          data[idx+2] = Math.floor(brightness * 15);
+          // Sol : béton + sang épandu
+          const n2=Math.abs(Math.sin(x*0.051+y*0.031)*Math.cos(x*0.023));
+          const isBloodPool=n2>0.72&&rowDist<5;
+          if(isBloodPool&&flashlight){
+            data[i]  =Math.floor(floorBrightness*200);
+            data[i+1]=0; data[i+2]=0;
+          } else {
+            data[i]  =Math.floor(floorBrightness*(45+n2*20));
+            data[i+1]=Math.floor(floorBrightness*(30+n2*8));
+            data[i+2]=Math.floor(floorBrightness*(25));
+          }
         }
-        data[idx+3] = 255;
+        data[i+3]=255;
       }
     }
 
-    // Walls
+    // Murs — raycasting DDA
+    const isNearEnd=player.y>(CH-6);
     for(let col=0;col<RAYS;col++){
-      const rayAngle = player.angle - FOV/2 + (col/RAYS)*FOV;
-      const cosA = Math.cos(rayAngle), sinA = Math.sin(rayAngle);
-      let dist = 0, hit = false, side = 0, wallX = 0;
-      let mapX = Math.floor(player.x), mapY = Math.floor(player.y);
-      const deltaX = Math.abs(1/cosA), deltaY = Math.abs(1/sinA);
-      const stepX = cosA < 0 ? -1 : 1, stepY = sinA < 0 ? -1 : 1;
-      let sideDistX = cosA < 0 ? (player.x-mapX)*deltaX : (mapX+1-player.x)*deltaX;
-      let sideDistY = sinA < 0 ? (player.y-mapY)*deltaY : (mapY+1-player.y)*deltaY;
+      const rayAngle=player.angle-FOV/2+(col/RAYS)*FOV;
+      const cosA=Math.cos(rayAngle), sinA=Math.sin(rayAngle);
+      let mx2=Math.floor(player.x), my2=Math.floor(player.y);
+      const dDX=Math.abs(1/cosA), dDY=Math.abs(1/sinA);
+      const sX=cosA<0?-1:1, sY=sinA<0?-1:1;
+      let sdX=cosA<0?(player.x-mx2)*dDX:(mx2+1-player.x)*dDX;
+      let sdY=sinA<0?(player.y-my2)*dDY:(my2+1-player.y)*dDY;
+      let side=0, hit=false;
 
-      for(let i=0;i<MAX_DEPTH && !hit;i++){
-        if(sideDistX < sideDistY){ sideDistX+=deltaX; mapX+=stepX; side=0; }
-        else { sideDistY+=deltaY; mapY+=stepY; side=1; }
-        const mIdx = mapY*MAP_W+mapX;
-        if(mIdx>=0 && mIdx<map.length && map[mIdx]===1) hit=true;
+      for(let step=0;step<MAX_D&&!hit;step++){
+        if(sdX<sdY){sdX+=dDX;mx2+=sX;side=0;}
+        else{sdY+=dDY;my2+=sY;side=1;}
+        const mi=my2*CW+mx2;
+        if(mi>=0&&mi<map.length&&map[mi]===1) hit=true;
+        // Fin du couloir = mur fictif
+        if(my2>=CH-1) hit=true;
       }
-
       if(!hit) continue;
-      dist = side===0 ? (mapX-player.x+(1-stepX)/2)/cosA : (mapY-player.y+(1-stepY)/2)/sinA;
-      dist = Math.abs(dist);
-      wallX = side===0 ? player.y+dist*sinA : player.x+dist*cosA;
-      wallX -= Math.floor(wallX);
 
-      // Bob effect
-      const bob = Math.sin(bobAngle)*2;
-      const wallH = Math.min(H, Math.floor(H/dist));
-      const drawStart = Math.floor((H-wallH)/2 + bob);
-      const drawEnd = drawStart + wallH;
-      const screenX = Math.floor(col * W/RAYS);
-      const colW = Math.ceil(W/RAYS)+1;
-      const [r,g,b] = getWallColor(dist, side, wallX, rayAngle);
+      const dist=side===0
+        ?(mx2-player.x+(1-sX)/2)/cosA
+        :(my2-player.y+(1-sY)/2)/sinA;
+      const d=Math.abs(dist);
+      const wx=side===0?player.y+d*sinA:player.x+d*cosA;
+      const wallX=wx-Math.floor(wx);
 
-      for(let row=drawStart;row<drawEnd && row<H;row++){
+      const wallH=Math.min(H*3,Math.floor(H/d));
+      const drawS=Math.floor((H-wallH)/2+totalBob);
+      const drawE=drawS+wallH;
+      const sX2=Math.floor(col*W/RAYS);
+      const colW=Math.ceil(W/RAYS)+1;
+      const [r,g,b]=wallShade(d,side,wallX,isNearEnd);
+
+      for(let row=drawS;row<drawE&&row<H;row++){
         if(row<0) continue;
-        for(let dx=0;dx<colW && screenX+dx<W;dx++){
-          const idx = (row*W+(screenX+dx))*4;
-          data[idx]=r; data[idx+1]=g; data[idx+2]=b; data[idx+3]=255;
+        for(let dx=0;dx<colW&&sX2+dx<W;dx++){
+          const i=(row*W+(sX2+dx))*4;
+          data[i]=r;data[i+1]=g;data[i+2]=b;data[i+3]=255;
         }
       }
     }
 
-    ctx.putImageData(imgData, 0, 0);
+    // Message gravé sur le mur proche
+    ctx.putImageData(img,0,0);
+
+    // Texte "SORTEZ" gravé sur les murs quand on s'approche
+    if(player.y>CH*0.4&&flashlight){
+      const alpha=Math.min(1,(player.y-CH*0.4)/(CH*0.2))*flashFlicker;
+      ctx.save();
+      ctx.globalAlpha=alpha*0.35;
+      ctx.font=`bold ${Math.floor(H*0.04)}px 'Courier New'`;
+      ctx.fillStyle='#8b0000';
+      ctx.textAlign='center';
+      ctx.fillText('FAITES DEMI-TOUR', W*0.5, H*0.35);
+      ctx.restore();
+    }
+    if(player.y>CH*0.65&&flashlight){
+      const alpha=Math.min(1,(player.y-CH*0.65)/(CH*0.15))*flashFlicker;
+      ctx.save();
+      ctx.globalAlpha=alpha*0.5;
+      ctx.font=`bold ${Math.floor(H*0.05)}px 'Courier New'`;
+      ctx.fillStyle='#cc0000';
+      ctx.textAlign='center';
+      ctx.fillText('IL ATTEND', W*0.5, H*0.65);
+      ctx.restore();
+    }
   }
 
-  // Noise overlay
-  function renderNoise(){
-    noiseCanvas.width = 200; noiseCanvas.height = 150;
-    const nd = noiseCtx.createImageData(200,150);
-    for(let i=0;i<nd.data.length;i+=4){
-      const v = Math.random()*255;
-      nd.data[i]=v; nd.data[i+1]=v; nd.data[i+2]=v; nd.data[i+3]=30;
+  let lastTs=0, stepAcc=0;
+  function loop(ts){
+    if(!active||!started){frameId=null;return;}
+    const dt=Math.min(50,ts-lastTs); lastTs=ts;
+
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+
+    // Mouvement
+    const spd=0.04;
+    const rot=0.035;
+    let moving=false;
+    if(keys['z']||keys['Z']||keys['ArrowUp']){
+      const nx=player.x+Math.cos(player.angle)*spd;
+      const ny=player.y+Math.sin(player.angle)*spd;
+      const mi=Math.floor(ny)*CW+Math.floor(nx);
+      if(mi>=0&&mi<map.length&&map[mi]===0){
+        player.x=nx;player.y=ny;moving=true;
+      }
     }
-    noiseCtx.putImageData(nd,0,0);
-  }
-
-  let lastStep = 0, stepInterval = 0;
-  let frameCount = 0;
-
-  function gameLoop(ts){
-    if(!active || !started) return;
-    frameCount++;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Movement
-    const speed = 0.045;
-    const rotSpeed = 0.038;
-    let moving = false;
-
-    if(keys['z']||keys['ArrowUp']){
-      const nx = player.x + Math.cos(player.angle)*speed;
-      const ny = player.y + Math.sin(player.angle)*speed;
-      const mi = Math.floor(ny)*MAP_W+Math.floor(nx);
-      if(mi>=0&&mi<map.length&&map[mi]===0){ player.x=nx; player.y=ny; moving=true; }
+    if(keys['s']||keys['S']||keys['ArrowDown']){
+      const nx=player.x-Math.cos(player.angle)*spd;
+      const ny=player.y-Math.sin(player.angle)*spd;
+      const mi=Math.floor(ny)*CW+Math.floor(nx);
+      if(mi>=0&&mi<map.length&&map[mi]===0){
+        player.x=nx;player.y=ny;moving=true;
+      }
     }
-    if(keys['s']||keys['ArrowDown']){
-      const nx = player.x - Math.cos(player.angle)*speed;
-      const ny = player.y - Math.sin(player.angle)*speed;
-      const mi = Math.floor(ny)*MAP_W+Math.floor(nx);
-      if(mi>=0&&mi<map.length&&map[mi]===0){ player.x=nx; player.y=ny; moving=true; }
+    if(keys['q']||keys['Q']||keys['ArrowLeft']) player.angle-=rot;
+    if(keys['d']||keys['D']||keys['ArrowRight']) player.angle+=rot;
+
+    // Progression 0..1
+    pos=Math.max(0,Math.min(1,(player.y-1.5)/(CORRIDOR_LENGTH-2)));
+    corrPBar.style.width=(pos*100)+'%';
+
+    // Rythme cardiaque accélère
+    heartRate=2200-pos*1600;
+    heartTimer+=dt;
+    if(heartTimer>heartRate){playHeartbeat(heartRate);heartTimer=0;}
+
+    // Chuchotements
+    whisperTimer-=dt;
+    if(whisperTimer<0){
+      // son de whisper : bruit filtré
+      try{
+        const a=getAudio();
+        const b=a.createBuffer(1,a.sampleRate*1.2,a.sampleRate);
+        const d=b.getChannelData(0);
+        for(let i=0;i<d.length;i++){
+          const env=Math.sin(Math.PI*i/d.length);
+          d[i]=(Math.random()*2-1)*0.02*env;
+        }
+        const s=a.createBufferSource();
+        const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=600+Math.random()*500;f.Q.value=0.4;
+        const g=a.createGain();g.gain.value=0.4;
+        s.buffer=b;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
+      }catch(e){}
+      whisperTimer=Math.random()*12000+6000;
     }
-    if(keys['q']||keys['ArrowLeft']) player.angle -= rotSpeed;
-    if(keys['d']||keys['ArrowRight']) player.angle += rotSpeed;
 
     // Bob
-    if(moving){ bobAngle += 0.15; }
-    else { bobAngle *= 0.9; }
+    if(moving){bobAngle+=0.14;}else{bobAngle*=0.88;}
 
-    // Footsteps
+    // Respiration
+    breathPhase+=0.018;
+
+    // Pas
     if(moving){
-      stepInterval = flashlight ? 320 : 420;
-      if(ts - lastStep > stepInterval){ playFootstep(); lastStep=ts; }
+      stepAcc+=dt;
+      if(stepAcc>stepCooldown){playStep();stepAcc=0;stepCooldown=380-pos*120;}
+    } else stepAcc=0;
+
+    // Flicker lampe
+    flashFlicker=0.85+Math.sin(ts*0.003)*0.08+Math.random()*0.07;
+    if(pos>0.7&&Math.random()<0.002){
+      flashlight=false;
+      setTimeout(()=>{flashlight=true;},60+Math.random()*180);
+    }
+    darkOverlay.style.opacity=flashlight?0:0.97;
+
+    // Flash sang aléatoire
+    if(Math.random()<0.001+pos*0.003){bloodAlpha=0.5+Math.random()*0.3;}
+    bloodAlpha*=0.88;
+    bloodFlashEl.style.opacity=bloodAlpha;
+
+    // Drone monte
+    rampDrone(0.04+pos*0.08, 0.5);
+
+    // Grain
+    grainTimer+=dt;
+    if(grainTimer>40){renderGrain();grainTimer=0;}
+
+    castFrame();
+
+    // Fin du couloir
+    if(!endReached && player.y >= CH-2.5){
+      endReached=true;
+      triggerEnding();
+      return;
     }
 
-    // Heartbeat
-    heartbeatTimer += 16;
-    if(heartbeatTimer > heartRate){ playHeartbeat(); heartbeatTimer=0; heartRate = Math.max(200, heartRate-0.3); }
-
-    // Whisper
-    whisperTimer += 16;
-    if(whisperTimer > 8000+Math.random()*12000){ playWhisper(); whisperTimer=0; }
-
-    // Blood flash
-    if(Math.random() < 0.001){ bloodFlash = 0.6; }
-    bloodFlash *= 0.92;
-    bloodOverlay.style.opacity = bloodFlash;
-
-    // Flashlight flicker
-    if(flashlight){
-      flashTimer += 16;
-      if(flashTimer > 4000+Math.random()*6000){
-        flashlight = false;
-        setTimeout(()=>{ flashlight=true; flashTimer=0; },80+Math.random()*200);
-      }
-    }
-
-    castRays();
-    if(frameCount%3===0) renderNoise();
-
-    requestAnimationFrame(gameLoop);
+    frameId=requestAnimationFrame(loop);
   }
 
-  // ── OPEN CORRIDOR ──
-  trigger.addEventListener('click', function(){
-    corridor.style.display='block';
-    active = true;
-    document.body.style.overflow='hidden';
-
-    setTimeout(()=>{ enterText.style.opacity='1'; },300);
-
-    function startGame(){
-      if(started) return;
-      started = true;
-      enterScreen.style.transition='opacity 1.5s';
-      enterScreen.style.opacity='0';
-      setTimeout(()=>{ enterScreen.style.display='none'; corrUI.style.opacity='1'; },1500);
-      // Deep drone sound
-      try{
-        const a = getAudio();
-        const osc = a.createOscillator();
-        const gain = a.createGain();
-        const filter = a.createBiquadFilter();
-        filter.type='lowpass'; filter.frequency.value=150;
-        osc.connect(filter); filter.connect(gain); gain.connect(a.destination);
-        osc.type='sawtooth'; osc.frequency.value=28;
-        gain.gain.setValueAtTime(0,a.currentTime);
-        gain.gain.linearRampToValueAtTime(0.06,a.currentTime+3);
-        osc.start();
-      }catch(e){}
-      requestAnimationFrame(gameLoop);
+  function renderGrain(){
+    grainC.width=320;grainC.height=240;
+    const nd=grainCtx.createImageData(320,240);
+    for(let i=0;i<nd.data.length;i+=4){
+      const v=Math.random()*255;
+      nd.data[i]=v;nd.data[i+1]=v;nd.data[i+2]=v;nd.data[i+3]=18+Math.random()*20;
     }
+    grainCtx.putImageData(nd,0,0);
+  }
 
-    document.addEventListener('keydown', function onKey(e){
-      if(e.key==='Escape' && active){ closeCorridor(); document.removeEventListener('keydown',onKey); return; }
-      if(!started){ startGame(); }
-      keys[e.key]=true;
-      if(e.key==='f'||e.key==='F') flashlight=!flashlight;
-      e.preventDefault();
-    });
-    document.addEventListener('keyup', e=>{ keys[e.key]=false; });
+  // ── FIN DU COULOIR ─────────────────────────────
+  function triggerEnding(){
+    if(frameId){cancelAnimationFrame(frameId);frameId=null;}
+    playScream();
+    // Écran rouge brutal
+    bloodFlashEl.style.transition='none';
+    bloodFlashEl.style.opacity='1';
+    bloodFlashEl.style.background='rgba(139,0,0,0.95)';
+    setTimeout(()=>{
+      bloodFlashEl.style.opacity='0';
+      bloodFlashEl.style.background='rgba(120,0,0,.2)';
+      bloodFlashEl.style.transition='opacity .05s';
+      // Afficher l'écran de fin
+      corrEnd.style.display='flex';
+      setTimeout(()=>{corrEnd.style.opacity='1';},50);
+    },600);
+  }
+
+  // Bouton "accepter et continuer" → retour site corrompu
+  endBtn.addEventListener('click',function(){
+    closeCorridor();
+    setTimeout(()=>{corruptSite();},300);
   });
 
+  function corruptSite(){
+    document.body.classList.add('corrupted');
+    // Titre qui glitch
+    const title=document.querySelector('.hero-title');
+    if(title){
+      const orig=title.innerHTML;
+      let glitchCount=0;
+      const glitchInterval=setInterval(()=>{
+        if(glitchCount>8){clearInterval(glitchInterval);title.innerHTML=orig;return;}
+        title.innerHTML=orig.replace('THIBAULT','T̷H̵I̴B̵A̶U̸L̷T').replace('FATELA','F̸A̵T̴E̷L̵A̶');
+        setTimeout(()=>{title.innerHTML=orig;},80);
+        glitchCount++;
+      },300);
+    }
+    // Textes qui se transforment
+    setTimeout(()=>{
+      const nav=document.querySelector('.nav-logo');
+      if(nav) nav.textContent='T.F̸A̶T̵E̶L̴A̷';
+    },2000);
+    // Son ambiant bas dans la page
+    try{
+      const a=new(window.AudioContext||window.webkitAudioContext)();
+      const o=a.createOscillator();
+      const g=a.createGain();
+      o.type='sine';o.frequency.value=18;
+      g.gain.value=0.03;
+      o.connect(g);g.connect(a.destination);o.start();
+    }catch(e){}
+  }
+
+  // ── OPEN / CLOSE ───────────────────────────────
+  trigger.addEventListener('click',function(){
+    if(active) return;
+    active=true;
+    corridor.style.display='block';
+    document.body.style.overflow='hidden';
+    setTimeout(()=>{enterContent.style.opacity='1';},400);
+  });
+
+  function onKeyDown(e){
+    if(!active) return;
+    if(e.key==='Escape'){
+      if(corrEnd.style.display==='flex'&&corrEnd.style.opacity==='1'){
+        closeCorridor();corruptSite();return;
+      }
+      closeCorridor();return;
+    }
+    if(!started&&active){
+      startGame();
+    }
+    keys[e.key]=true;
+    if(e.key==='f'||e.key==='F') flashlight=!flashlight;
+    e.preventDefault();
+  }
+  function onKeyUp(e){keys[e.key]=false;}
+
+  document.addEventListener('keydown',onKeyDown);
+  document.addEventListener('keyup',onKeyUp);
+
+  function startGame(){
+    started=true;
+    enterScreen.style.transition='opacity 1.5s';
+    enterScreen.style.opacity='0';
+    setTimeout(()=>{
+      enterScreen.style.display='none';
+      corrHud.style.opacity='1';
+      corrPWrap.style.opacity='0.6';
+    },1500);
+    playDrone();
+    lastTs=performance.now();
+    frameId=requestAnimationFrame(loop);
+  }
+
   function closeCorridor(){
-    active=false; started=false;
+    active=false;started=false;endReached=false;
+    if(frameId){cancelAnimationFrame(frameId);frameId=null;}
     corridor.style.display='none';
     document.body.style.overflow='';
-    corrUI.style.opacity='0';
-    enterScreen.style.display='flex';
-    enterScreen.style.opacity='1';
-    enterText.style.opacity='0';
+    // Reset
+    corrHud.style.opacity='0';
+    corrPWrap.style.opacity='0';
+    corrPBar.style.width='0%';
+    corrEnd.style.display='none';corrEnd.style.opacity='0';
+    enterScreen.style.display='flex';enterScreen.style.opacity='1';
+    enterContent.style.opacity='0';
+    bloodFlashEl.style.opacity='0';
+    darkOverlay.style.opacity='0';
     keys={};
-    player={x:1.5,y:1.5,angle:0,speed:0};
-    flashlight=false; bloodFlash=0; heartRate=400;
-    if(audioCtx){ audioCtx.close(); audioCtx=null; }
+    player={x:1.5,y:1.5,angle:-Math.PI/2};
+    pos=0;bobAngle=0;heartTimer=0;heartRate=2200;
+    bloodAlpha=0;flashlight=true;flashFlicker=1;
+    whisperTimer=Math.random()*15000+8000;
+    if(audioCtx){try{audioCtx.close();}catch(e){} audioCtx=null;droneNode=null;droneGain=null;}
   }
 })();
 </script>
