@@ -461,6 +461,8 @@ footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.05);padding:
     <div class="scroll-tick"></div>
     Scroll
   </div>
+  <!-- PIXEL GLITCH CACHÉ -->
+  <div id="arg-pixel" style="position:absolute;bottom:38px;left:47px;width:4px;height:4px;z-index:10;cursor:crosshair;background:rgba(255,255,255,.0);animation:pixelFlicker 8s infinite;"></div>
 </section>
 
 <div class="divider"></div>
@@ -688,593 +690,621 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
 
 
 
-<!-- ═══════════════ EASTER EGG ═══════════════ -->
-<div id="egg-trigger" style="position:fixed;bottom:0;right:0;width:40px;height:40px;z-index:600;opacity:0;cursor:default;"></div>
 
-<div id="corridor" style="display:none;position:fixed;inset:0;z-index:9990;background:#000;overflow:hidden;">
-  <canvas id="corr-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>
-  <canvas id="grain-c"     style="position:absolute;inset:0;width:100%;height:100%;opacity:.06;pointer-events:none;z-index:2;image-rendering:pixelated;"></canvas>
-  <div id="vignette"       style="position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse 60% 60% at 50% 50%,transparent 25%,rgba(0,0,0,.98) 100%);"></div>
-  <div id="blood-flash"    style="position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;background:rgba(120,0,0,.25);"></div>
-  <div id="dark-overlay"   style="position:absolute;inset:0;pointer-events:none;z-index:5;background:#000;opacity:0;transition:opacity .2s;"></div>
+<!-- ═══════════════ ARG : PROTOCOLE FATELA ═══════════════ -->
 
-  <!-- Barre progression -->
-  <div style="position:absolute;top:1.5rem;left:50%;transform:translateX(-50%);z-index:10;width:180px;opacity:0;transition:opacity 1.5s;" id="prog-wrap">
-    <div style="height:1px;background:rgba(255,255,255,.06);"><div id="prog-bar" style="height:100%;width:0%;background:rgba(180,0,0,.5);transition:width .1s;"></div></div>
+<style>
+/* Pixel glitch anim */
+@keyframes pixelFlicker{
+  0%,94%{background:rgba(255,255,255,0);box-shadow:none}
+  95%{background:rgba(255,0,0,.9);box-shadow:0 0 6px 2px rgba(255,0,0,.6)}
+  96%{background:rgba(0,255,200,.8);box-shadow:0 0 4px 1px rgba(0,255,200,.5)}
+  97%{background:rgba(255,255,255,0);box-shadow:none}
+  98%{background:rgba(255,0,0,.7);box-shadow:0 0 3px 1px rgba(255,0,0,.4)}
+  99%,100%{background:rgba(255,255,255,0);box-shadow:none}
+}
+
+/* ══ ARG OVERLAY ══ */
+#arg-overlay{
+  display:none;position:fixed;inset:0;z-index:9000;
+  background:#000;font-family:'Courier New',Courier,monospace;
+  overflow:hidden;
+}
+/* CRT scanlines */
+#arg-overlay::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:100;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);
+}
+/* CRT flicker */
+#arg-overlay::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:101;
+  background:radial-gradient(ellipse 90% 80% at 50% 50%,transparent 60%,rgba(0,0,0,.4) 100%);
+  animation:crtVig 4s ease-in-out infinite;
+}
+@keyframes crtVig{0%,100%{opacity:1}50%{opacity:.85}}
+
+#arg-screen{
+  position:relative;z-index:10;
+  height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:3rem 2rem;
+  color:#c8c8c8;
+}
+
+/* Header barre */
+#arg-topbar{
+  position:absolute;top:0;left:0;right:0;
+  padding:.8rem 2rem;
+  border-bottom:1px solid rgba(180,0,0,.3);
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.6rem;letter-spacing:.25em;color:rgba(180,0,0,.6);
+  z-index:20;
+}
+#arg-topbar-r{color:rgba(255,255,255,.15)}
+
+/* Zone principale */
+#arg-main{
+  width:100%;max-width:680px;
+  display:flex;flex-direction:column;
+  gap:2.5rem;
+}
+
+/* Bloc intro / status */
+#arg-status{
+  font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;
+  color:rgba(180,0,0,.7);margin-bottom:.5rem;
+  animation:argBlink 2s step-end infinite;
+}
+@keyframes argBlink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* La question elle-meme */
+#arg-question{
+  font-size:clamp(.85rem,2.5vw,1.15rem);
+  line-height:1.7;
+  color:#e0e0e0;
+  min-height:3rem;
+  position:relative;
+}
+/* curseur clignotant typewriter */
+#arg-question::after{
+  content:"|";color:#c00;
+  animation:argBlink .7s step-end infinite;
+}
+#arg-question.done::after{content:""}
+
+/* Réponses boutons */
+#arg-choices{
+  display:flex;gap:1rem;flex-wrap:wrap;
+}
+.arg-btn{
+  padding:.7rem 1.8rem;
+  border:1px solid rgba(200,200,200,.2);
+  background:transparent;color:#c8c8c8;
+  font-family:'Courier New',monospace;
+  font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;
+  cursor:none;transition:all .2s;
+}
+.arg-btn:hover{
+  border-color:rgba(200,0,0,.6);color:#fff;
+  background:rgba(180,0,0,.08);
+  box-shadow:0 0 12px rgba(180,0,0,.15);
+  text-shadow:0 0 8px rgba(255,80,80,.4);
+}
+/* input text */
+#arg-input-wrap{display:flex;gap:1rem;align-items:center}
+#arg-text-input{
+  background:transparent;border:none;border-bottom:1px solid rgba(200,200,200,.3);
+  color:#fff;font-family:'Courier New',monospace;font-size:1rem;
+  padding:.4rem .2rem;outline:none;width:280px;
+  letter-spacing:.05em;
+}
+#arg-text-input:focus{border-bottom-color:rgba(200,0,0,.6);}
+#arg-confirm-btn{
+  padding:.5rem 1.2rem;border:1px solid rgba(200,0,0,.4);
+  background:transparent;color:rgba(200,0,0,.8);
+  font-family:'Courier New',monospace;font-size:.7rem;
+  letter-spacing:.2em;cursor:none;transition:all .2s;
+}
+#arg-confirm-btn:hover{background:rgba(180,0,0,.15);color:#fff}
+
+/* Réponse (feedback) */
+#arg-feedback{
+  font-size:.8rem;color:rgba(180,0,0,.75);
+  letter-spacing:.08em;line-height:1.6;
+  min-height:1.5rem;
+  font-style:italic;
+  opacity:0;transition:opacity .5s;
+}
+#arg-feedback.show{opacity:1}
+
+/* Barre progression */
+#arg-progress-wrap{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  width:200px;text-align:center;
+}
+#arg-progress-bar{height:1px;background:rgba(255,255,255,.06);margin-bottom:.5rem;}
+#arg-progress-fill{height:100%;width:0%;background:rgba(180,0,0,.5);transition:width .8s ease;}
+#arg-progress-label{font-size:.55rem;letter-spacing:.2em;color:rgba(255,255,255,.15);text-transform:uppercase;}
+
+/* ══ LOADING ANALYSE ══ */
+#arg-loading{
+  display:none;position:absolute;inset:0;z-index:50;
+  background:#000;align-items:center;justify-content:center;
+  flex-direction:column;gap:2rem;
+}
+#arg-loading-txt{
+  font-size:.7rem;letter-spacing:.35em;text-transform:uppercase;
+  color:rgba(180,0,0,.7);
+}
+#arg-loading-bar{width:300px;height:1px;background:rgba(255,255,255,.06);overflow:hidden;}
+#arg-loading-fill{height:100%;width:0%;background:#c00;transition:width 3s linear;}
+#arg-loading-glitch{
+  font-size:clamp(1.5rem,4vw,2.5rem);
+  color:rgba(180,0,0,.4);
+  letter-spacing:.15em;
+  font-family:'Courier New',monospace;
+  animation:argGlitchTxt 1.2s infinite;
+}
+@keyframes argGlitchTxt{
+  0%,100%{clip-path:inset(0 0 0 0);transform:none;color:rgba(180,0,0,.4)}
+  7%{clip-path:inset(20% 0 50% 0);transform:translateX(-4px);color:#c00}
+  8%{clip-path:inset(0 0 0 0);transform:none}
+  30%{clip-path:inset(60% 0 10% 0);transform:translateX(3px);color:rgba(0,200,180,.5)}
+  31%{clip-path:inset(0 0 0 0);transform:none;color:rgba(180,0,0,.4)}
+}
+
+/* ══ DOSSIER FINAL ══ */
+#arg-dossier{
+  display:none;position:absolute;inset:0;z-index:60;
+  background:#000;align-items:flex-start;justify-content:center;
+  padding:4rem 2rem;overflow-y:auto;
+}
+#arg-dossier-inner{
+  width:100%;max-width:700px;
+  border:1px solid rgba(180,0,0,.35);
+  padding:3rem;position:relative;
+}
+#arg-dossier-inner::before{
+  content:"██████ CLASSIFIÉ ██████";
+  position:absolute;top:-1rem;left:50%;transform:translateX(-50%);
+  background:#000;padding:0 1rem;
+  font-size:.65rem;letter-spacing:.3em;color:rgba(180,0,0,.8);
+  white-space:nowrap;
+}
+.dossier-title{
+  font-family:"Bebas Neue",sans-serif;
+  font-size:clamp(1.5rem,4vw,3rem);
+  letter-spacing:.1em;color:#c00;
+  margin-bottom:.3rem;
+  animation:argGlitchTxt 4s infinite;
+}
+.dossier-num{
+  font-size:.6rem;letter-spacing:.3em;color:rgba(255,255,255,.2);
+  margin-bottom:2.5rem;
+  padding-bottom:1.5rem;
+  border-bottom:1px solid rgba(180,0,0,.2);
+}
+.dossier-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:.9rem 0;border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:.8rem;gap:2rem;
+}
+.dossier-key{
+  color:rgba(255,255,255,.25);letter-spacing:.15em;text-transform:uppercase;
+  font-size:.65rem;flex-shrink:0;
+}
+.dossier-val{color:#e0e0e0;text-align:right;word-break:break-all;}
+.dossier-val.red{color:#c00;}
+.dossier-val.green{color:#4ade80;}
+
+.dossier-verdict{
+  margin-top:2.5rem;padding:1.5rem;
+  border:1px solid rgba(180,0,0,.3);
+  background:rgba(180,0,0,.04);
+  font-size:.85rem;line-height:1.9;
+  color:rgba(200,200,200,.7);
+}
+.dossier-verdict span{color:#fff;font-weight:600;}
+.dossier-close{
+  display:block;margin:2rem auto 0;
+  padding:.7rem 2rem;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:rgba(255,255,255,.2);
+  font-family:'Courier New',monospace;font-size:.65rem;
+  letter-spacing:.2em;text-transform:uppercase;
+  cursor:none;transition:all .3s;
+}
+.dossier-close:hover{border-color:rgba(180,0,0,.4);color:#fff;}
+
+/* glitch horizontal lines */
+.arg-scanline-glitch{
+  position:absolute;inset:0;pointer-events:none;z-index:200;overflow:hidden;
+}
+.arg-scanline-glitch::before{
+  content:"";position:absolute;
+  width:100%;height:2px;background:rgba(180,0,0,.15);
+  animation:scanMove 6s linear infinite;
+}
+@keyframes scanMove{from{top:-2px}to{top:100%}}
+</style>
+
+<!-- OVERLAY ARG -->
+<div id="arg-overlay">
+  <div class="arg-scanline-glitch"></div>
+  <div id="arg-topbar">
+    <span>PROTOCOLE FATELA · v2.1.7</span>
+    <span id="arg-topbar-r">SESSION : <span id="arg-session-id">--</span></span>
   </div>
 
-  <!-- HUD -->
-  <div id="corr-hud" style="position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:10;opacity:0;transition:opacity 1.5s;font-family:'Courier New',monospace;font-size:.62rem;letter-spacing:.18em;color:rgba(255,255,255,.18);text-transform:uppercase;pointer-events:none;white-space:nowrap;">
-    ZQSD · avancer &nbsp;|&nbsp; F · lampe &nbsp;|&nbsp; E · interagir &nbsp;|&nbsp; ESC · fuir
-  </div>
-
-  <!-- Écran d'entrée -->
-  <div id="corr-enter" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:#000;">
-    <div id="enter-txt" style="text-align:center;opacity:0;transition:opacity 2s;font-family:'Courier New',monospace;color:#fff;">
-      <div style="font-size:clamp(3rem,8vw,5rem);color:#6b0000;animation:EGflkr 2s infinite;margin-bottom:1.2rem;">⚠</div>
-      <div style="font-size:clamp(.85rem,2vw,1.2rem);letter-spacing:.28em;text-transform:uppercase;">VOUS N'AURIEZ PAS DÛ CLIQUER.</div>
-      <div style="margin-top:2.5rem;font-size:.65rem;letter-spacing:.15em;opacity:.25;">— appuyez sur une touche —</div>
+  <div id="arg-screen">
+    <div id="arg-main">
+      <div id="arg-status">▶ EN ATTENTE DE RÉPONSE</div>
+      <div id="arg-question"></div>
+      <div id="arg-input-wrap" style="display:none">
+        <input type="text" id="arg-text-input" placeholder="..." autocomplete="off" spellcheck="false" maxlength="24"/>
+        <button id="arg-confirm-btn" class="arg-btn">CONFIRMER</button>
+      </div>
+      <div id="arg-choices"></div>
+      <div id="arg-feedback"></div>
+    </div>
+    <div id="arg-progress-wrap">
+      <div id="arg-progress-bar"><div id="arg-progress-fill"></div></div>
+      <div id="arg-progress-label">PROTOCOLE EN COURS</div>
     </div>
   </div>
 
-  <!-- Écran FIN : silhouette dos -->
-  <div id="corr-end" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:25;background:#000;opacity:0;transition:opacity 1.2s;">
-    <div style="text-align:center;font-family:'Courier New',monospace;color:#fff;padding:2rem;">
-      <!-- Silhouette dessinée en SVG / canvas -->
-      <canvas id="silhouette-canvas" width="320" height="420" style="display:block;margin:0 auto;animation:EGpulse 3s ease-in-out infinite;"></canvas>
-      <div id="end-prompt" style="margin-top:1.5rem;font-size:.7rem;letter-spacing:.22em;color:rgba(255,255,255,.3);text-transform:uppercase;animation:EGflkr 1.5s infinite;opacity:0;transition:opacity 2s;">
-        appuyez sur E pour interagir
-      </div>
+  <!-- Loading -->
+  <div id="arg-loading" style="display:none;position:absolute;inset:0;z-index:50;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:2rem;">
+    <div id="arg-loading-glitch">ANALYSE EN COURS</div>
+    <div id="arg-loading-bar"><div id="arg-loading-fill"></div></div>
+    <div id="arg-loading-txt">COMPILATION DU DOSSIER...</div>
+  </div>
+
+  <!-- Dossier final -->
+  <div id="arg-dossier" style="display:none;position:absolute;inset:0;z-index:60;background:#000;align-items:flex-start;justify-content:center;padding:4rem 2rem;overflow-y:auto;">
+    <div id="arg-dossier-inner">
+      <div class="dossier-title">DOSSIER SUJET</div>
+      <div class="dossier-num" id="dossier-num">RÉFÉRENCE : #000000 · ÉTAT : COMPROMIS</div>
+      <div id="dossier-rows"></div>
+      <div class="dossier-verdict" id="dossier-verdict"></div>
+      <button class="dossier-close" id="dossier-close-btn">[ FERMER ET OUBLIER ]</button>
     </div>
   </div>
 </div>
 
-<style>
-@keyframes EGflkr{0%,100%{opacity:1}88%{opacity:1}89%{opacity:0}92%{opacity:1}95%{opacity:0}97%{opacity:1}}
-@keyframes EGpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
-
-/* ═══ SITE CORROMPU ═══ */
-body.corrupted{ animation:EGbodyGlitch 5s infinite; }
-@keyframes EGbodyGlitch{
-  0%,100%{filter:none;transform:none}
-  3%{filter:hue-rotate(180deg) saturate(3) contrast(2);transform:skewX(3deg) translateX(-4px)}
-  3.2%{filter:none;transform:none}
-  18%{filter:none}
-  18.3%{filter:invert(.08) hue-rotate(120deg) saturate(4);transform:skewX(-2deg) translateY(2px)}
-  18.5%{filter:none;transform:none}
-  45%{filter:none}
-  45.2%{filter:hue-rotate(270deg) saturate(2);transform:skewX(1deg)}
-  45.4%{filter:none;transform:none}
-  70%{filter:none}
-  70.1%{filter:contrast(3) saturate(0) brightness(.3)}
-  70.15%{filter:none}
-}
-body.corrupted::before{
-  content:"";position:fixed;inset:0;z-index:8001;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(139,0,0,.04) 3px,rgba(139,0,0,.04) 4px);
-  animation:EGscan 4s linear infinite;
-}
-body.corrupted::after{
-  content:"";position:fixed;inset:0;z-index:8002;pointer-events:none;
-  background:transparent;
-  animation:EGrgb 7s infinite;
-}
-@keyframes EGscan{from{background-position:0 0}to{background-position:0 200px}}
-@keyframes EGrgb{
-  0%,100%{box-shadow:none}
-  10%{box-shadow:inset 3px 0 0 rgba(255,0,0,.15),inset -3px 0 0 rgba(0,255,255,.15)}
-  10.5%{box-shadow:none}
-  40%{box-shadow:inset -4px 0 0 rgba(255,0,0,.2),inset 4px 0 0 rgba(0,255,0,.1)}
-  40.3%{box-shadow:none}
-}
-
-/* Textes qui se corrompent */
-body.corrupted .hero-title .line1::after{content:" ̷ ̴ ̶";color:#8b0000;font-size:.4em;animation:EGflkr .3s infinite;}
-body.corrupted .hero-title .line3{color:#8b0000!important;animation:EGflkr 4s infinite;}
-body.corrupted .nav-logo::after{content:" [INFECTÉ]";font-size:.45em;color:#8b0000;animation:EGflkr .8s infinite;vertical-align:middle;}
-body.corrupted .f-right::after{content:" · IL EST DANS VOS MURS";color:#8b0000;font-size:.85em;animation:EGflkr 2s infinite;}
-body.corrupted .hbc-val strong{color:#8b0000!important;animation:EGflkr 3s infinite;}
-
-/* Images / sections qui cassent */
-body.corrupted .hero-lines{
-  background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(139,0,0,.15) 39px,rgba(139,0,0,.15) 40px)!important;
-}
-body.corrupted .section-divider,
-body.corrupted .divider{background:rgba(139,0,0,.3)!important;}
-body.corrupted .bouygues-strip{border-color:#8b0000!important;}
-body.corrupted .mission-block:nth-child(3) .mission-title::after{
-  content:" ̸";color:#8b0000;
-}
-body.corrupted .mission-block:nth-child(5) .mission-desc::before{
-  content:"[DONNÉES CORROMPUES] ";color:#8b0000;font-size:.75em;animation:EGflkr .4s infinite;
-}
-
-/* Curseur corrompu */
-body.corrupted #cr{border-color:#8b0000!important;animation:EGflkr .15s infinite;}
-
-/* Message fantôme flottant */
-#ghost-msg{
-  position:fixed;z-index:8003;
-  font-family:'Courier New',monospace;font-size:.7rem;
-  color:rgba(139,0,0,.6);letter-spacing:.15em;text-transform:uppercase;
-  pointer-events:none;
-  animation:EGflkr .6s infinite;
-  display:none;
-}
-</style>
-
-<div id="ghost-msg"></div>
-
 <script>
 (function(){
-  /* ── refs ── */
-  const trigger   = document.getElementById('egg-trigger');
-  const corridor  = document.getElementById('corridor');
-  const canvas    = document.getElementById('corr-canvas');
-  const ctx       = canvas.getContext('2d');
-  const grainC    = document.getElementById('grain-c');
-  const grainCtx  = grainC.getContext('2d');
-  const enterDiv  = document.getElementById('corr-enter');
-  const enterTxt  = document.getElementById('enter-txt');
-  const corrHud   = document.getElementById('corr-hud');
-  const progWrap  = document.getElementById('prog-wrap');
-  const progBar   = document.getElementById('prog-bar');
-  const bloodEl   = document.getElementById('blood-flash');
-  const darkEl    = document.getElementById('dark-overlay');
-  const corrEnd   = document.getElementById('corr-end');
-  const silCanvas = document.getElementById('silhouette-canvas');
-  const silCtx    = silCanvas.getContext('2d');
-  const endPrompt = document.getElementById('end-prompt');
-  const ghostMsg  = document.getElementById('ghost-msg');
+  /* ── CONFIG ── */
+  const pixel = document.getElementById('arg-pixel');
+  const overlay = document.getElementById('arg-overlay');
+  const questionEl = document.getElementById('arg-question');
+  const choicesEl = document.getElementById('arg-choices');
+  const feedbackEl = document.getElementById('arg-feedback');
+  const inputWrap = document.getElementById('arg-input-wrap');
+  const textInput = document.getElementById('arg-text-input');
+  const confirmBtn = document.getElementById('arg-confirm-btn');
+  const progressFill = document.getElementById('arg-progress-fill');
+  const loadingEl = document.getElementById('arg-loading');
+  const loadingFill = document.getElementById('arg-loading-fill');
+  const dossierEl = document.getElementById('arg-dossier');
+  const dossierRows = document.getElementById('dossier-rows');
+  const dossierVerdict = document.getElementById('dossier-verdict');
+  const dossierClose = document.getElementById('dossier-close-btn');
+  const sessionSpan = document.getElementById('arg-session-id');
+  const statusEl = document.getElementById('arg-status');
 
-  let active=false,started=false,endReached=false,canInteract=false;
-  let keys={};
-  let audioCtx=null,droneGain=null;
+  /* Session ID aléatoire */
+  const sessionId = Math.random().toString(36).substring(2,8).toUpperCase();
+  sessionSpan.textContent = sessionId;
 
-  /* ── MAP : couloir droit 4×70 ── */
-  const CW=4,CH=72;
-  const map=[];
-  for(let y=0;y<CH;y++)
-    for(let x=0;x<CW;x++)
-      map.push(x===0||x===CW-1?1:0);
+  /* Timestamp entrée sur le site */
+  const siteEnterTime = Date.now();
+  let argStartTime = 0;
 
-  let player={x:1.5,y:1.5,angle:-Math.PI/2};
-  const FOV=Math.PI/3.2, RAYS=480, MAX_D=90;
-  let pos=0,bobAngle=0,breathPhase=0;
-  let flashlight=true,flashFlicker=1.0;
-  let heartTimer=0,heartRate=2200;
-  let bloodAlpha=0,stepAcc=0,stepCd=360;
-  let whisperT=Math.random()*12000+6000;
-  let grainT=0,frameId=null,lastTs=0;
+  /* Données collectées */
+  let data = { prenom:'', seul:'', observe:'', ecran:'', peur:'' };
+  let currentStep = 0;
 
-  /* ── AUDIO ── */
-  function audio(){
-    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    return audioCtx;
-  }
-  function playDrone(){
-    try{
-      const a=audio();
-      droneGain=a.createGain(); droneGain.gain.value=0;
-      const o1=a.createOscillator(); o1.type='sawtooth'; o1.frequency.value=30;
-      const o2=a.createOscillator(); o2.type='sine';     o2.frequency.value=27.3;
-      const lfo=a.createOscillator(); lfo.type='sine';   lfo.frequency.value=0.07;
-      const lg=a.createGain(); lg.gain.value=3;
-      lfo.connect(lg); lg.connect(o1.frequency);
-      const f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=200;
-      o1.connect(f); o2.connect(f); f.connect(droneGain); droneGain.connect(a.destination);
-      o1.start(); o2.start(); lfo.start();
-      droneGain.gain.linearRampToValueAtTime(0.06,a.currentTime+3);
-    }catch(e){}
-  }
-  function rampDrone(v,d=1){
-    if(!droneGain||!audioCtx) return;
-    try{droneGain.gain.linearRampToValueAtTime(v,audioCtx.currentTime+d);}catch(e){}
-  }
-  function playStep(){
-    try{
-      const a=audio(),b=a.createBuffer(1,~~(a.sampleRate*.09),a.sampleRate);
-      const d=b.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)*.5;
-      const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
-      f.type='lowpass';f.frequency.value=260;g.gain.value=.55;
-      s.buffer=b;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
-    }catch(e){}
-  }
-  function playScream(){
-    try{
-      const a=audio(),b=a.createBuffer(1,~~(a.sampleRate*.9),a.sampleRate);
-      const d=b.getChannelData(0);
-      for(let i=0;i<d.length;i++){
-        const t=i/a.sampleRate,env=Math.max(0,1-t*1.3);
-        d[i]=(Math.random()*2-1)*env*.35+Math.sin(t*660*Math.PI*2)*env*.25;
+  /* ── QUESTIONS ── */
+  const STEPS = [
+    {
+      id:'intro',
+      text:"IDENTIFICATION REQUISE.\n\nSaisissez votre prénom.",
+      type:'text',
+      feedback: null,
+    },
+    {
+      id:'seul',
+      text:"Êtes-vous seul ?",
+      type:'choice',
+      choices:['OUI','NON'],
+      feedback:{
+        'OUI':"Bien.",
+        'NON':"Ils ne peuvent pas vous aider."
       }
-      const s=a.createBufferSource(),g=a.createGain();
-      g.gain.value=.7;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();
-    }catch(e){}
-  }
-  function playHeartbeat(){
-    try{
-      const a=audio();
-      function beat(){
-        const b=a.createBuffer(1,~~(a.sampleRate*.12),a.sampleRate);
-        const d=b.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=Math.sin(i/d.length*Math.PI)*Math.sin(i*.8)*.3;
-        const s=a.createBufferSource(),g=a.createGain();
-        g.gain.value=.5;s.buffer=b;s.connect(g);g.connect(a.destination);s.start();
+    },
+    {
+      id:'observe',
+      text:"Avez-vous déjà eu l'impression d'être observé ?",
+      type:'choice',
+      choices:['OUI','NON'],
+      feedback:{
+        'OUI':"Vous avez raison.",
+        'NON':"C'est ce qu'ils pensent tous."
       }
-      beat();setTimeout(beat,130);
-    }catch(e){}
-  }
-  function playWhisper(){
-    try{
-      const a=audio(),b=a.createBuffer(1,~~(a.sampleRate*1.4),a.sampleRate);
-      const d=b.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*.018*Math.sin(Math.PI*i/d.length);
-      const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
-      f.type='bandpass';f.frequency.value=700+Math.random()*500;f.Q.value=.35;
-      g.gain.value=.35;s.buffer=b;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
-    }catch(e){}
+    },
+    {
+      id:'ecran',
+      text:"Depuis combien d'heures fixez-vous un écran aujourd'hui ?",
+      type:'choice',
+      choices:['< 2H','2 – 5H','5 – 8H','+ 8H'],
+      feedback:{
+        '< 2H':"La journée est encore longue.",
+        '2 – 5H':"La moyenne. Vous semblez ordinaire.",
+        '5 – 8H':"Votre regard commence à se vider.",
+        '+ 8H':"Cela explique beaucoup de choses."
+      }
+    },
+    {
+      id:'temps',
+      text:'', // généré dynamiquement
+      type:'auto',
+      delay: 3200,
+    },
+    {
+      id:'peur',
+      text:'', // généré dynamiquement avec le prénom
+      type:'choice',
+      choices:['OUI','NON'],
+      feedback:{
+        'OUI':"Vous avez bien raison.",
+        'NON':"Vous mentez."
+      }
+    }
+  ];
+
+  /* ── TYPEWRITER ── */
+  function typewrite(text, el, speed=28, cb){
+    el.classList.remove('done');
+    el.textContent='';
+    let i=0;
+    const chars=text.split('');
+    function next(){
+      if(i<chars.length){
+        el.textContent+=chars[i++];
+        const delay = chars[i-1]==='\n'? speed*4 : (Math.random()<.08? speed*5 : speed);
+        setTimeout(next,delay);
+      } else {
+        el.classList.add('done');
+        if(cb)cb();
+      }
+    }
+    next();
   }
 
-  /* ── RAYCASTER ── */
-  function wallShade(dist,side,wx,nearEnd){
-    const att=1/(1+dist*dist*.07);
-    const br=flashlight?flashFlicker*att:0;
-    const crack=Math.abs(Math.sin(wx*59.3+side*4.1))>.96;
-    const blood=Math.abs(Math.sin(wx*37.1))>.965&&Math.abs(Math.cos(wx*11.7))>.6;
-    const mold=Math.pow(Math.abs(Math.sin(wx*13.7)*Math.cos(wx*5.3)),3)*.4;
-    let r,g,b;
-    if(nearEnd&&dist<5){
-      /* fond rouge sang */
-      r=~~(br*190+15);g=~~(br*8);b=~~(br*5);
-    } else if(crack){
-      r=~~(br*28);g=~~(br*9);b=~~(br*7);
-    } else if(blood){
-      r=~~(br*170+br*30*Math.random());g=0;b=0;
+  /* ── GLITCH TEXT ── */
+  function glitchText(el, finalText, cb){
+    const chars='!@#$%^&*<>?/|\\[]{}~█▓▒░ÿøæ01';
+    let iter=0;
+    const iv=setInterval(()=>{
+      el.textContent=finalText.split('').map((c,i)=>{
+        if(i<iter)return c;
+        return c===' '?' ':chars[~~(Math.random()*chars.length)];
+      }).join('');
+      if(iter++>finalText.length+5){clearInterval(iv);el.textContent=finalText;if(cb)cb();}
+    },45);
+  }
+
+  /* ── FEEDBACK ── */
+  function showFeedback(txt, cb){
+    feedbackEl.textContent=txt;
+    feedbackEl.classList.add('show');
+    setTimeout(()=>{
+      feedbackEl.classList.remove('show');
+      setTimeout(cb||function(){},400);
+    },2200);
+  }
+
+  /* ── CLEAR UI ── */
+  function clearUI(){
+    choicesEl.innerHTML='';
+    inputWrap.style.display='none';
+    feedbackEl.classList.remove('show');
+    feedbackEl.textContent='';
+    questionEl.classList.remove('done');
+  }
+
+  /* ── PROGRESS ── */
+  function setProgress(n,total){
+    progressFill.style.width=(n/total*100)+'%';
+  }
+
+  /* ── RUN STEP ── */
+  function runStep(idx){
+    if(idx>=STEPS.length){startLoading();return;}
+    currentStep=idx;
+    setProgress(idx,STEPS.length);
+    const step=STEPS[idx];
+    clearUI();
+
+    // Textes dynamiques
+    let txt=step.text;
+    if(step.id==='temps'){
+      const secs=Math.round((Date.now()-siteEnterTime)/1000);
+      const mins=Math.floor(secs/60);
+      const s=secs%60;
+      const timeStr=mins>0?`${mins} minute${mins>1?'s':''} et ${s} secondes`:`${secs} secondes`;
+      txt=`Vous êtes sur ce site depuis ${timeStr}.\n\nNous aussi.`;
+    }
+    if(step.id==='peur'){
+      const p=data.prenom||'vous';
+      txt=`Une dernière question, ${p}.\n\nAvez-vous peur ?`;
+    }
+
+    setTimeout(()=>{
+      if(step.type==='auto'){
+        typewrite(txt,questionEl,32,()=>{
+          setTimeout(()=>runStep(idx+1),step.delay||2000);
+        });
+      } else {
+        typewrite(txt,questionEl,28,()=>{
+          if(step.type==='text'){
+            inputWrap.style.display='flex';
+            textInput.value='';
+            setTimeout(()=>textInput.focus(),100);
+          } else if(step.type==='choice'){
+            step.choices.forEach(c=>{
+              const btn=document.createElement('button');
+              btn.className='arg-btn';
+              btn.textContent=c;
+              btn.style.cursor='none';
+              btn.addEventListener('click',()=>handleChoice(step,c));
+              choicesEl.appendChild(btn);
+            });
+          }
+        });
+      }
+    },300);
+  }
+
+  function handleChoice(step,choice){
+    data[step.id]=choice;
+    choicesEl.innerHTML='';
+    const fb=step.feedback&&step.feedback[choice];
+    if(fb){
+      showFeedback(fb,()=>runStep(currentStep+1));
     } else {
-      const s=side?.58:1;
-      r=~~(br*(72+mold*22)*s);g=~~(br*(52+mold*10)*s);b=~~(br*48*s);
-    }
-    return[Math.min(255,r),Math.min(255,g),Math.min(255,b)];
-  }
-
-  function castFrame(){
-    const W=canvas.width,H=canvas.height;
-    const img=ctx.createImageData(W,H);
-    const data=img.data;
-    const bob=Math.sin(bobAngle)*3;
-    const breath=Math.sin(breathPhase)*1.1;
-    const dy=bob+breath;
-    const near=player.y>(CH-7);
-
-    /* sol / plafond */
-    for(let y=0;y<H;y++){
-      const ceil=y<H/2;
-      const frac=Math.abs(y-H/2)/(H/2);
-      const rd=(H/2)/(frac+.0001);
-      const fb=flashlight?flashFlicker*Math.max(0,1-rd*.055)*.16:0;
-      for(let x=0;x<W;x++){
-        const n=Math.abs(Math.sin(x*.038+y*.027)*Math.cos(x*.019-y*.042));
-        const i=(y*W+x)*4;
-        if(ceil){
-          data[i]=~~(fb*(28+n*12));data[i+1]=~~(fb*(18+n*7));data[i+2]=~~(fb*(16+n*5));
-        } else {
-          const bp=n>.73&&rd<4.5;
-          if(bp&&flashlight){data[i]=~~(fb*180);data[i+1]=0;data[i+2]=0;}
-          else{data[i]=~~(fb*(42+n*18));data[i+1]=~~(fb*(28+n*7));data[i+2]=~~(fb*23);}
-        }
-        data[i+3]=255;
-      }
-    }
-
-    /* murs DDA */
-    for(let col=0;col<RAYS;col++){
-      const ra=player.angle-FOV/2+(col/RAYS)*FOV;
-      const ca=Math.cos(ra),sa=Math.sin(ra);
-      let mx=~~player.x,my=~~player.y;
-      const ddx=Math.abs(1/ca),ddy=Math.abs(1/sa);
-      const sx=ca<0?-1:1,sy=sa<0?-1:1;
-      let sdx=ca<0?(player.x-mx)*ddx:(mx+1-player.x)*ddx;
-      let sdy=sa<0?(player.y-my)*ddy:(my+1-player.y)*ddy;
-      let side=0,hit=false;
-      for(let i=0;i<MAX_D&&!hit;i++){
-        if(sdx<sdy){sdx+=ddx;mx+=sx;side=0;}
-        else{sdy+=ddy;my+=sy;side=1;}
-        const mi=my*CW+mx;
-        if(my>=CH-1||mi>=0&&mi<map.length&&map[mi]===1)hit=true;
-      }
-      if(!hit)continue;
-      const dist=Math.abs(side===0?(mx-player.x+(1-sx)/2)/ca:(my-player.y+(1-sy)/2)/sa);
-      const wx=(side===0?player.y+dist*sa:player.x+dist*ca)-Math.floor(side===0?player.y+dist*sa:player.x+dist*ca);
-      const wh=Math.min(H*3,~~(H/dist));
-      const ds=~~((H-wh)/2+dy),de=ds+wh;
-      const sx2=~~(col*W/RAYS),cw=~~(W/RAYS)+1;
-      const[r,g,b]=wallShade(dist,side,wx,near);
-      for(let row=ds;row<de&&row<H;row++){
-        if(row<0)continue;
-        for(let dx=0;dx<cw&&sx2+dx<W;dx++){
-          const i=(row*W+(sx2+dx))*4;
-          data[i]=r;data[i+1]=g;data[i+2]=b;data[i+3]=255;
-        }
-      }
-    }
-
-    ctx.putImageData(img,0,0);
-
-    /* textes gravés */
-    if(player.y>CH*.38&&flashlight){
-      const al=Math.min(1,(player.y-CH*.38)/(CH*.18))*flashFlicker*.4;
-      ctx.save();ctx.globalAlpha=al;
-      ctx.font=`bold ${~~(H*.038)}px 'Courier New'`;
-      ctx.fillStyle='#8b0000';ctx.textAlign='center';
-      ctx.fillText('FAITES DEMI-TOUR',W*.5,H*.32);ctx.restore();
-    }
-    if(player.y>CH*.62&&flashlight){
-      const al=Math.min(1,(player.y-CH*.62)/(CH*.15))*flashFlicker*.55;
-      ctx.save();ctx.globalAlpha=al;
-      ctx.font=`bold ${~~(H*.046)}px 'Courier New'`;
-      ctx.fillStyle='#cc0000';ctx.textAlign='center';
-      ctx.fillText('IL VOUS ATTEND',W*.5,H*.64);ctx.restore();
+      runStep(currentStep+1);
     }
   }
 
-  /* ── SILHOUETTE ── */
-  function drawSilhouette(){
-    const w=silCanvas.width,h=silCanvas.height;
-    silCtx.clearRect(0,0,w,h);
-    silCtx.fillStyle='#000';silCtx.fillRect(0,0,w,h);
+  confirmBtn.addEventListener('click',()=>{
+    const val=textInput.value.trim();
+    if(!val)return;
+    data.prenom=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
+    inputWrap.style.display='none';
+    textInput.blur();
+    runStep(currentStep+1);
+  });
+  textInput.addEventListener('keydown',e=>{if(e.key==='Enter')confirmBtn.click();});
 
-    /* lumière ambiante derrière */
-    const grad=silCtx.createRadialGradient(w/2,h*.35,10,w/2,h*.4,180);
-    grad.addColorStop(0,'rgba(60,0,0,.9)');
-    grad.addColorStop(1,'rgba(0,0,0,0)');
-    silCtx.fillStyle=grad;silCtx.fillRect(0,0,w,h);
-
-    /* silhouette noire — forme humaine de dos */
-    silCtx.fillStyle='#0a0a0a';
-
-    /* tête */
-    silCtx.beginPath();
-    silCtx.ellipse(w/2,h*.18,28,35,0,0,Math.PI*2);
-    silCtx.fill();
-
-    /* cou */
-    silCtx.fillRect(w/2-10,h*.22,20,28);
-
-    /* épaules + torse */
-    silCtx.beginPath();
-    silCtx.moveTo(w/2-70,h*.28);
-    silCtx.bezierCurveTo(w/2-75,h*.3,w/2-60,h*.6,w/2-45,h*.68);
-    silCtx.lineTo(w/2+45,h*.68);
-    silCtx.bezierCurveTo(w/2+60,h*.6,w/2+75,h*.3,w/2+70,h*.28);
-    silCtx.bezierCurveTo(w/2+55,h*.24,w/2+30,h*.22,w/2,h*.22);
-    silCtx.bezierCurveTo(w/2-30,h*.22,w/2-55,h*.24,w/2-70,h*.28);
-    silCtx.fill();
-
-    /* bras gauche */
-    silCtx.beginPath();
-    silCtx.moveTo(w/2-65,h*.3);
-    silCtx.bezierCurveTo(w/2-90,h*.42,w/2-88,h*.58,w/2-72,h*.7);
-    silCtx.bezierCurveTo(w/2-62,h*.74,w/2-52,h*.73,w/2-48,h*.68);
-    silCtx.bezierCurveTo(w/2-55,h*.56,w/2-58,h*.42,w/2-55,h*.32);
-    silCtx.fill();
-
-    /* bras droit */
-    silCtx.beginPath();
-    silCtx.moveTo(w/2+65,h*.3);
-    silCtx.bezierCurveTo(w/2+90,h*.42,w/2+88,h*.58,w/2+72,h*.7);
-    silCtx.bezierCurveTo(w/2+62,h*.74,w/2+52,h*.73,w/2+48,h*.68);
-    silCtx.bezierCurveTo(w/2+55,h*.56,w/2+58,h*.42,w/2+55,h*.32);
-    silCtx.fill();
-
-    /* jambe gauche */
-    silCtx.beginPath();
-    silCtx.moveTo(w/2-38,h*.67);
-    silCtx.bezierCurveTo(w/2-42,h*.78,w/2-38,h*.9,w/2-32,h*.99);
-    silCtx.lineTo(w/2-10,h*.99);
-    silCtx.bezierCurveTo(w/2-12,h*.88,w/2-16,h*.76,w/2-14,h*.67);
-    silCtx.fill();
-
-    /* jambe droite */
-    silCtx.beginPath();
-    silCtx.moveTo(w/2+38,h*.67);
-    silCtx.bezierCurveTo(w/2+42,h*.78,w/2+38,h*.9,w/2+32,h*.99);
-    silCtx.lineTo(w/2+10,h*.99);
-    silCtx.bezierCurveTo(w/2+12,h*.88,w/2+16,h*.76,w/2+14,h*.67);
-    silCtx.fill();
-
-    /* halo rouge autour */
-    const halo=silCtx.createRadialGradient(w/2,h*.5,60,w/2,h*.5,200);
-    halo.addColorStop(0,'rgba(0,0,0,0)');
-    halo.addColorStop(.7,'rgba(0,0,0,0)');
-    halo.addColorStop(1,'rgba(0,0,0,.9)');
-    silCtx.fillStyle=halo;silCtx.fillRect(0,0,w,h);
-  }
-
-  /* ── GAME LOOP ── */
-  function loop(ts){
-    if(!active||!started){frameId=null;return;}
-    const dt=Math.min(50,ts-lastTs);lastTs=ts;
-    canvas.width=window.innerWidth;canvas.height=window.innerHeight;
-
-    const spd=.042,rot=.036;
-    let moving=false;
-    if(keys['z']||keys['Z']||keys['ArrowUp']){
-      const nx=player.x+Math.cos(player.angle)*spd;
-      const ny=player.y+Math.sin(player.angle)*spd;
-      const mi=~~ny*CW+~~nx;
-      if(mi>=0&&mi<map.length&&map[mi]===0){player.x=nx;player.y=ny;moving=true;}
-    }
-    if(keys['s']||keys['S']||keys['ArrowDown']){
-      const nx=player.x-Math.cos(player.angle)*spd;
-      const ny=player.y-Math.sin(player.angle)*spd;
-      const mi=~~ny*CW+~~nx;
-      if(mi>=0&&mi<map.length&&map[mi]===0){player.x=nx;player.y=ny;moving=true;}
-    }
-    if(keys['q']||keys['Q']||keys['ArrowLeft'])player.angle-=rot;
-    if(keys['d']||keys['D']||keys['ArrowRight'])player.angle+=rot;
-
-    pos=Math.max(0,Math.min(1,(player.y-1.5)/(CH-4)));
-    progBar.style.width=(pos*100)+'%';
-    heartRate=2200-pos*1700;
-    heartTimer+=dt;
-    if(heartTimer>heartRate){playHeartbeat();heartTimer=0;}
-    whisperT-=dt;
-    if(whisperT<0){playWhisper();whisperT=Math.random()*10000+5000;}
-    if(moving){bobAngle+=.14;}else{bobAngle*=.87;}
-    breathPhase+=.017;
-    if(moving){stepAcc+=dt;if(stepAcc>stepCd){playStep();stepAcc=0;stepCd=370-pos*110;}}
-    else stepAcc=0;
-    flashFlicker=.83+Math.sin(ts*.0025)*.09+Math.random()*.08;
-    if(pos>.65&&Math.random()<.003){flashlight=false;setTimeout(()=>{flashlight=true;},70+~~(Math.random()*200));}
-    darkEl.style.opacity=flashlight?0:.98;
-    if(Math.random()<.001+pos*.004){bloodAlpha=.45+Math.random()*.3;}
-    bloodAlpha*=.87;bloodEl.style.opacity=bloodAlpha;
-    rampDrone(.04+pos*.09,.4);
-    grainT+=dt;if(grainT>35){renderGrain();grainT=0;}
-    castFrame();
-
-    if(!endReached&&player.y>=CH-2.8){endReached=true;triggerEnd();return;}
-    frameId=requestAnimationFrame(loop);
-  }
-
-  function renderGrain(){
-    grainC.width=280;grainC.height=200;
-    const nd=grainCtx.createImageData(280,200);
-    for(let i=0;i<nd.data.length;i+=4){
-      const v=~~(Math.random()*255);
-      nd.data[i]=v;nd.data[i+1]=v;nd.data[i+2]=v;nd.data[i+3]=15+~~(Math.random()*20);
-    }
-    grainCtx.putImageData(nd,0,0);
-  }
-
-  /* ── FIN : silhouette ── */
-  function triggerEnd(){
-    if(frameId){cancelAnimationFrame(frameId);frameId=null;}
-    playScream();
-    bloodEl.style.transition='none';
-    bloodEl.style.opacity='1';
-    bloodEl.style.background='rgba(100,0,0,.9)';
+  /* ── LOADING ── */
+  function startLoading(){
+    setProgress(STEPS.length,STEPS.length);
+    // masquer l'écran principal
+    document.getElementById('arg-screen').style.opacity='0';
     setTimeout(()=>{
-      bloodEl.style.transition='opacity .1s';
-      bloodEl.style.opacity='0';
-      bloodEl.style.background='rgba(120,0,0,.25)';
-      drawSilhouette();
-      corrEnd.style.display='flex';
-      setTimeout(()=>{
-        corrEnd.style.opacity='1';
-        setTimeout(()=>{endPrompt.style.opacity='1';canInteract=true;},2500);
-      },100);
-    },700);
+      document.getElementById('arg-screen').style.display='none';
+      loadingEl.style.display='flex';
+      setTimeout(()=>{loadingFill.style.width='100%';},100);
+      // glitch text
+      const glitchEl=document.getElementById('arg-loading-glitch');
+      let count=0;
+      const gIv=setInterval(()=>{
+        if(count++>20){clearInterval(gIv);}
+        glitchText(glitchEl,'ANALYSE EN COURS');
+      },300);
+      // après 3.5s -> dossier
+      setTimeout(showDossier,3800);
+    },600);
   }
 
-  /* ── CORRUPTION EXTREME ── */
-  function corruptSite(){
-    document.body.classList.add('corrupted');
+  /* ── DOSSIER ── */
+  function showDossier(){
+    loadingEl.style.display='none';
+    dossierEl.style.display='flex';
 
-    /* Glitch titre */
-    const h1=document.querySelector('.hero-title');
-    if(h1){
-      const orig=h1.innerHTML;
-      let n=0;
-      const iv=setInterval(()=>{
-        if(n++>12){clearInterval(iv);h1.innerHTML=orig;return;}
-        h1.innerHTML=orig
-          .replace('THIBAULT','T̸͓̋H̵̰̎Ḯ̷̲B̸̯̆A̵̜͑U̸͙͌L̴̩͋T̸͍̂')
-          .replace('FATELA','F̷̘̈Ȧ̴͚T̶̟̃Ë̷̲L̸̨̽Â̵̗');
-        setTimeout(()=>{h1.innerHTML=orig;},70);
-      },250);
-    }
+    // Ref dossier
+    const ref='#'+Math.floor(100000+Math.random()*900000);
+    document.getElementById('dossier-num').textContent=`RÉFÉRENCE : ${ref} · SESSION : ${sessionId} · ÉTAT : ██ COMPROMIS ██`;
 
-    /* Nav logo */
-    const nl=document.querySelector('.nav-logo');
-    if(nl)setTimeout(()=>{nl.textContent='[CORROMPU]';},1800);
+    // Infos réelles
+    const ua=navigator.userAgent;
+    let browser='Inconnu';
+    if(ua.includes('Firefox'))browser='Mozilla Firefox';
+    else if(ua.includes('Edg'))browser='Microsoft Edge';
+    else if(ua.includes('Chrome'))browser='Google Chrome';
+    else if(ua.includes('Safari'))browser='Apple Safari';
 
-    /* Sections qui bougent */
+    let os='Inconnu';
+    if(ua.includes('Windows'))os='Windows';
+    else if(ua.includes('Mac'))os='macOS';
+    else if(ua.includes('Linux'))os='Linux';
+    else if(ua.includes('Android'))os='Android';
+    else if(ua.includes('iPhone')||ua.includes('iPad'))os='iOS';
+
+    const now=new Date();
+    const heure=now.toLocaleTimeString('fr-FR');
+    const resolution=screen.width+'×'+screen.height;
+    const langue=navigator.language||'Inconnu';
+    const totalSecs=Math.round((Date.now()-siteEnterTime)/1000);
+    const mins=Math.floor(totalSecs/60),secs=totalSecs%60;
+    const duree=mins>0?`${mins}min ${secs}s`:`${secs}s`;
+
+    const rows=[
+      {key:'SUJET IDENTIFIÉ',val:data.prenom||'[REFUS]',cls:''},
+      {key:'NAVIGATEUR',val:browser,cls:''},
+      {key:'SYSTÈME D\'EXPLOITATION',val:os,cls:''},
+      {key:'HEURE DE CONNEXION',val:heure,cls:''},
+      {key:'RÉSOLUTION ÉCRAN',val:resolution,cls:''},
+      {key:'LANGUE',val:langue.toUpperCase(),cls:''},
+      {key:'DURÉE D\'OBSERVATION',val:duree,cls:'red'},
+      {key:'SEUL',val:data.seul||'—',cls:data.seul==='NON'?'red':''},
+      {key:'SENTIMENT D\'ÊTRE OBSERVÉ',val:data.observe||'—',cls:data.observe==='OUI'?'red':''},
+      {key:'STATUT',val:'COMPROMIS',cls:'red'},
+    ];
+
+    dossierRows.innerHTML='';
+    rows.forEach((r,i)=>{
+      const div=document.createElement('div');
+      div.className='dossier-row';
+      div.style.opacity='0';
+      div.innerHTML=`<span class="dossier-key">${r.key}</span><span class="dossier-val ${r.cls}">${r.val}</span>`;
+      dossierRows.appendChild(div);
+      setTimeout(()=>{div.style.transition='opacity .4s';div.style.opacity='1';},i*140+200);
+    });
+
+    const p=data.prenom||'vous';
     setTimeout(()=>{
-      document.querySelectorAll('.about-big-name,.colas-big-title,.projets-title,.jlf-big-title').forEach((el,i)=>{
-        setTimeout(()=>{
-          el.style.transition='color .1s';
-          el.style.color='#8b0000';
-          setTimeout(()=>{el.style.color='';},200);
-        },i*400);
-      });
-    },1000);
-
-    /* Messages fantômes flottants */
-    const msgs=['IL EST LÀ','VOUS NE PARTIREZ PLUS','IL VOUS A VU','SORTEZ','TROP TARD','IL EST EN VOUS'];
-    let mi=0;
-    ghostMsg.style.display='block';
-    const showGhost=()=>{
-      ghostMsg.textContent=msgs[mi%msgs.length];
-      ghostMsg.style.left=~~(Math.random()*70+5)+'vw';
-      ghostMsg.style.top=~~(Math.random()*70+10)+'vh';
-      mi++;
-      setTimeout(showGhost,Math.random()*4000+2000);
-    };
-    setTimeout(showGhost,800);
-
-    /* Son grave continu */
-    try{
-      const a=new(window.AudioContext||window.webkitAudioContext)();
-      const o=a.createOscillator(),g=a.createGain();
-      o.type='sine';o.frequency.value=16;g.gain.value=.025;
-      o.connect(g);g.connect(a.destination);o.start();
-    }catch(e){}
+      dossierVerdict.innerHTML=`Vous pensiez être en sécurité.<br><br>Vous ne l'êtes <span>plus</span>, ${p}.<br><br>Ce portfolio n'est pas ce qu'il semble être.<br>Et nous ne sommes pas seuls ici.`;
+      dossierVerdict.style.opacity='0';
+      setTimeout(()=>{dossierVerdict.style.transition='opacity 1s';dossierVerdict.style.opacity='1';},300);
+    },rows.length*140+600);
   }
 
-  /* ── EVENTS ── */
-  trigger.addEventListener('click',()=>{
-    if(active)return;
-    active=true;
-    corridor.style.display='block';
+  /* ── OPEN / CLOSE ── */
+  function openARG(){
+    argStartTime=Date.now();
+    overlay.style.display='block';
     document.body.style.overflow='hidden';
-    setTimeout(()=>{enterTxt.style.opacity='1';},400);
-  });
-
-  document.addEventListener('keydown',e=>{
-    if(!active)return;
-    if(e.key==='Escape'){closeCorridor();return;}
-    if(e.key==='e'||e.key==='E'){
-      if(canInteract){closeCorridor();setTimeout(corruptSite,300);}
-      return;
-    }
-    if(!started){startGame();}
-    keys[e.key]=true;
-    if(e.key==='f'||e.key==='F')flashlight=!flashlight;
-    e.preventDefault();
-  });
-  document.addEventListener('keyup',e=>{keys[e.key]=false;});
-
-  function startGame(){
-    started=true;
-    enterDiv.style.transition='opacity 1.5s';enterDiv.style.opacity='0';
-    setTimeout(()=>{
-      enterDiv.style.display='none';
-      corrHud.style.opacity='1';progWrap.style.opacity='.6';
-    },1500);
-    playDrone();lastTs=performance.now();
-    frameId=requestAnimationFrame(loop);
+    document.getElementById('arg-screen').style.opacity='1';
+    document.getElementById('arg-screen').style.display='flex';
+    loadingEl.style.display='none';
+    dossierEl.style.display='none';
+    clearUI();
+    data={prenom:'',seul:'',observe:'',ecran:'',peur:''};
+    currentStep=0;
+    setProgress(0,STEPS.length);
+    statusEl.textContent='▶ EN ATTENTE DE RÉPONSE';
+    // Petit délai dramatique
+    setTimeout(()=>runStep(0),800);
   }
 
-  function closeCorridor(){
-    active=false;started=false;endReached=false;canInteract=false;
-    if(frameId){cancelAnimationFrame(frameId);frameId=null;}
-    corridor.style.display='none';
+  function closeARG(){
+    overlay.style.display='none';
     document.body.style.overflow='';
-    corrHud.style.opacity='0';progWrap.style.opacity='0';progBar.style.width='0%';
-    corrEnd.style.display='none';corrEnd.style.opacity='0';endPrompt.style.opacity='0';
-    enterDiv.style.display='flex';enterDiv.style.opacity='1';enterTxt.style.opacity='0';
-    bloodEl.style.opacity='0';darkEl.style.opacity='0';
-    keys={};player={x:1.5,y:1.5,angle:-Math.PI/2};
-    pos=0;bobAngle=0;heartTimer=0;heartRate=2200;
-    bloodAlpha=0;flashlight=true;flashFlicker=1;
-    if(audioCtx){try{audioCtx.close();}catch(e){} audioCtx=null;droneGain=null;}
   }
+
+  pixel.addEventListener('click',openARG);
+  dossierClose.addEventListener('click',closeARG);
+
+  /* Clavier Escape */
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&overlay.style.display==='block'){closeARG();}
+  });
+
 })();
 </script>
-<!-- ═══════════════ FIN EASTER EGG ═══════════════ -->
+<!-- ═══════════════ FIN ARG ═══════════════ -->
 
 </body>
 </html>
