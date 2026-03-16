@@ -423,7 +423,7 @@ footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.05);padding:
   <ul class="nav-links">
     <li><a href="#about">Profil</a></li>
     <li><a href="#colas">Alternance</a></li>
-    <li><a href="#jlf">JLF</a></li><li><a href="#jlf">JLF</a></li><li><a href="#jlf">JLF</a></li><li><a href="#projets">Projets</a></li>
+    <li><a href="#jlf">JLF</a></li><li><a href="#projets">Projets</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div class="nav-status"><div class="nav-dot"></div>En alternance · CDS</div>
@@ -461,8 +461,114 @@ footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.05);padding:
     <div class="scroll-tick"></div>
     Scroll
   </div>
-  <!-- GLITCH SQUARE ARG -->
-  <div id="arg-pixel" style="position:absolute;bottom:60px;left:60px;width:18px;height:18px;z-index:10;cursor:crosshair;animation:argSquareGlitch 3s infinite;"></div>
+  <!-- IMPACT ÉCRAN GLITCH -->
+  <div id="arg-pixel">
+    <svg viewBox="-34 -34 68 68" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="iglow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+          <stop offset="20%" stop-color="#b8d8ff" stop-opacity="0.6"/>
+          <stop offset="55%" stop-color="#4488cc" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#000820" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="icore" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#000000" stop-opacity="1"/>
+          <stop offset="40%" stop-color="#050510" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="icblur"><feGaussianBlur stdDeviation="0.25"/></filter>
+        <filter id="igf" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="1.8" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- masque pour la scanline -->
+        <clipPath id="iclip"><rect x="-34" y="-34" width="68" height="68"/></clipPath>
+      </defs>
+
+      <!-- Halo de base -->
+      <circle cx="0" cy="0" r="32" fill="url(#iglow)" class="impact-main"/>
+
+      <!-- CALQUE ROUGE décalé (glitch chroma) -->
+      <g class="impact-r" opacity="0">
+        <g stroke="#ff2244" stroke-linecap="round" fill="none" filter="url(#icblur)">
+          <polyline points="0,0 4,-3 8,-7 12,-5 17,-12 20,-9 27,-15" stroke-width="0.9"/>
+          <polyline points="0,0 5,1 9,3 13,2 18,5 24,4 30,7" stroke-width="0.8"/>
+          <polyline points="0,0 3,4 6,9 5,13 9,18 7,21 11,27" stroke-width="0.9"/>
+          <polyline points="0,0 -4,3 -7,7 -6,12 -10,16 -9,20 -14,25" stroke-width="0.8"/>
+          <polyline points="0,0 -5,1 -9,2 -13,0 -19,2 -26,1" stroke-width="0.9"/>
+          <polyline points="0,0 -3,-4 -7,-7 -6,-11 -12,-14 -10,-18 -14,-23" stroke-width="0.8"/>
+          <polyline points="0,0 1,-5 -1,-10 2,-16 0,-22" stroke-width="0.75"/>
+        </g>
+        <circle cx="0" cy="0" r="4" fill="none" stroke="#ff2244" stroke-width="0.5" opacity="0.6"/>
+      </g>
+
+      <!-- CALQUE CYAN décalé (glitch chroma) -->
+      <g class="impact-b" opacity="0">
+        <g stroke="#00ddff" stroke-linecap="round" fill="none" filter="url(#icblur)">
+          <polyline points="0,0 4,-3 8,-7 12,-5 17,-12 20,-9 27,-15" stroke-width="0.9"/>
+          <polyline points="0,0 5,1 9,3 13,2 18,5 24,4 30,7" stroke-width="0.8"/>
+          <polyline points="0,0 3,4 6,9 5,13 9,18 7,21 11,27" stroke-width="0.9"/>
+          <polyline points="0,0 -4,3 -7,7 -6,12 -10,16 -9,20 -14,25" stroke-width="0.8"/>
+          <polyline points="0,0 -5,1 -9,2 -13,0 -19,2 -26,1" stroke-width="0.9"/>
+          <polyline points="0,0 -3,-4 -7,-7 -6,-11 -12,-14 -10,-18 -14,-23" stroke-width="0.8"/>
+          <polyline points="0,0 1,-5 -1,-10 2,-16 0,-22" stroke-width="0.75"/>
+        </g>
+        <circle cx="0" cy="0" r="4" fill="none" stroke="#00ddff" stroke-width="0.5" opacity="0.6"/>
+      </g>
+
+      <!-- Fissures principales (blanc/bleu) -->
+      <g class="impact-main" stroke="#cce4ff" stroke-linecap="round" fill="none" filter="url(#icblur)">
+        <polyline points="0,0 4,-3 8,-7 12,-5 17,-12 20,-9 27,-15" stroke-width="1"/>
+        <polyline points="0,0 5,1 9,3 13,2 18,5 24,4 30,7" stroke-width="0.9"/>
+        <polyline points="0,0 3,4 6,9 5,13 9,18 7,21 11,27" stroke-width="1"/>
+        <polyline points="0,0 -1,5 1,10 -2,14 1,20 -1,26" stroke-width="0.8"/>
+        <polyline points="0,0 -4,3 -7,7 -6,12 -10,16 -9,20 -14,25" stroke-width="0.9"/>
+        <polyline points="0,0 -5,1 -9,2 -13,0 -19,2 -26,1" stroke-width="1"/>
+        <polyline points="0,0 -3,-4 -7,-7 -6,-11 -12,-14 -10,-18 -14,-23" stroke-width="0.9"/>
+        <polyline points="0,0 1,-5 -1,-10 2,-16 0,-22" stroke-width="0.8"/>
+      </g>
+      <!-- Fissures secondaires fines -->
+      <g class="impact-main" stroke="#88b8ff" stroke-linecap="round" fill="none" opacity="0.55">
+        <polyline points="4,-3 6,1 10,2" stroke-width="0.5"/>
+        <polyline points="8,-7 10,-3 14,-1" stroke-width="0.45"/>
+        <polyline points="9,3 11,7 15,9" stroke-width="0.5"/>
+        <polyline points="6,9 10,11 12,15" stroke-width="0.45"/>
+        <polyline points="-7,7 -10,5 -13,8" stroke-width="0.45"/>
+        <polyline points="-9,2 -11,6 -15,7" stroke-width="0.5"/>
+        <polyline points="-3,-4 -5,0 -3,3" stroke-width="0.45"/>
+        <polyline points="1,-5 4,-3 7,-1" stroke-width="0.45"/>
+        <polyline points="12,-5 14,-1 17,0" stroke-width="0.5"/>
+      </g>
+
+      <!-- Noyau noir (trou) -->
+      <circle cx="0" cy="0" r="4.5" fill="url(#icore)" class="impact-main"/>
+      <!-- Point blanc brillant central -->
+      <circle cx="0" cy="0" r="2.8" fill="white" opacity="0.95" filter="url(#igf)" class="impact-main"/>
+      <circle cx="0" cy="0" r="1.4" fill="white" opacity="1" class="impact-main"/>
+
+      <!-- Éclats périphériques -->
+      <g fill="#cce8ff" class="impact-main" opacity="0.65">
+        <circle cx="14" cy="-8" r="0.7"/>
+        <circle cx="20" cy="4" r="0.6"/>
+        <circle cx="11" cy="16" r="0.65"/>
+        <circle cx="-5" cy="19" r="0.55"/>
+        <circle cx="-17" cy="9" r="0.6"/>
+        <circle cx="-16" cy="-6" r="0.55"/>
+        <circle cx="-6" cy="-16" r="0.6"/>
+        <circle cx="7" cy="-18" r="0.55"/>
+      </g>
+
+      <!-- Bande scanline glitch qui traverse -->
+      <g clip-path="url(#iclip)" class="impact-scan">
+        <rect x="-34" y="-3" width="68" height="5" fill="rgba(100,180,255,0.12)" rx="0"/>
+        <rect x="-34" y="-1" width="68" height="1.5" fill="rgba(200,230,255,0.18)"/>
+      </g>
+
+      <!-- Anneaux de choc -->
+      <circle cx="0" cy="0" r="6" fill="none" stroke="#aaccff" stroke-width="0.35" opacity="0.45" class="impact-main"/>
+      <circle cx="0" cy="0" r="10" fill="none" stroke="#8ab0ee" stroke-width="0.25" opacity="0.3" stroke-dasharray="1.5,2" class="impact-main"/>
+    </svg>
+  </div>
 </section>
 
 <div class="divider"></div>
@@ -694,25 +800,63 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
 <!-- ═══════════════ ARG : PROTOCOLE FATELA ═══════════════ -->
 
 <style>
-/* Pixel glitch anim */
-@keyframes argSquareGlitch{
-  0%{background:#c00;box-shadow:0 0 0 0 #c00;transform:none;opacity:1}
-  4%{background:#0ff;transform:translate(2px,-1px) scaleX(1.3);box-shadow:3px 0 0 #f0f,-3px 0 0 #0ff;opacity:1}
-  5%{background:#c00;transform:none;box-shadow:none;opacity:.2}
-  6%{opacity:1;background:#fff}
-  7%{background:#c00;transform:translate(-2px,1px);box-shadow:-2px 0 0 #0ff}
-  8%{transform:none;box-shadow:none}
-  30%{background:#c00;transform:none;opacity:1}
-  31%{background:#ff0;transform:scaleY(2.5) translateX(3px);opacity:.7}
-  32%{background:#c00;transform:none;opacity:1}
-  60%{opacity:1;transform:none}
-  61%{opacity:0;transform:translate(-4px,0)}
-  62%{opacity:1;transform:none}
-  90%{background:#c00}
-  91%{background:#0ff;transform:translateX(3px)}
-  92%{background:#c00;transform:none}
-  100%{background:#c00;box-shadow:none;transform:none;opacity:1}
+/* ── IMPACT ÉCRAN GLITCH ── */
+#arg-pixel {
+  position: absolute;
+  bottom: 55px;
+  left: 55px;
+  width: 68px;
+  height: 68px;
+  z-index: 10;
+  cursor: crosshair;
+  pointer-events: all;
 }
+#arg-pixel svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* Glitch chromatique : décalage R/B */
+@keyframes impactGlitchR {
+  0%,89%,100%{transform:translate(0,0);opacity:0}
+  90%{transform:translate(-2px,0);opacity:0.55}
+  91%{transform:translate(1px,-1px);opacity:0.45}
+  92%{transform:translate(0,0);opacity:0}
+  95%{transform:translate(2px,1px);opacity:0.5}
+  96%{transform:translate(0,0);opacity:0}
+}
+@keyframes impactGlitchB {
+  0%,89%,100%{transform:translate(0,0);opacity:0}
+  90%{transform:translate(2px,0);opacity:0.45}
+  91%{transform:translate(-1px,1px);opacity:0.35}
+  92%{transform:translate(0,0);opacity:0}
+  95%{transform:translate(-2px,-1px);opacity:0.4}
+  96%{transform:translate(0,0);opacity:0}
+}
+/* Scanline glitch : bande horizontale qui traverse */
+@keyframes impactScan {
+  0%{transform:translateY(-120%);opacity:0}
+  5%{opacity:0.7}
+  30%{transform:translateY(120%);opacity:0.5}
+  31%,100%{opacity:0;transform:translateY(-120%)}
+}
+/* Pulsation halo */
+@keyframes impactPulse {
+  0%,100%{opacity:0.55;filter:drop-shadow(0 0 4px rgba(160,200,255,.3))}
+  50%{opacity:0.75;filter:drop-shadow(0 0 9px rgba(160,200,255,.55))}
+}
+/* Flicker global */
+@keyframes impactFlicker {
+  0%,88%,100%{opacity:1}
+  89%{opacity:0.4}
+  90%{opacity:1}
+  94%{opacity:0.65}
+  95%{opacity:1}
+}
+#arg-pixel .impact-main { animation: impactPulse 3s ease-in-out infinite, impactFlicker 6s linear infinite; }
+#arg-pixel .impact-r    { animation: impactGlitchR 6s linear infinite; }
+#arg-pixel .impact-b    { animation: impactGlitchB 6s linear infinite; }
+#arg-pixel .impact-scan { animation: impactScan 4s linear infinite; }
 
 /* ══ ARG OVERLAY ══ */
 #arg-overlay{
@@ -1024,41 +1168,41 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     },
     {
       id:'seul',
-      text:"Êtes-vous seul ?",
+      text:"Êtes-vous seul en ce moment ?\n\nRéfléchissez avant de répondre.",
       type:'choice',
       choices:['OUI','NON'],
       feedback:{
-        'OUI':"Bien.",
-        'NON':"Ils ne peuvent pas vous aider."
+        'OUI':"Personne pour vous entendre, alors.",
+        'NON':"Ils ne savent pas ce que vous faites ici."
       }
     },
     {
       id:'observe',
-      text:"Avez-vous déjà eu l'impression d'être observé ?",
+      text:"Il vous arrive de vous réveiller la nuit avec le sentiment que quelque chose ne va pas — sans savoir quoi.\n\nCela vous est déjà arrivé ?",
       type:'choice',
       choices:['OUI','NON'],
       feedback:{
-        'OUI':"Vous avez raison.",
-        'NON':"C'est ce qu'ils pensent tous."
+        'OUI':"Votre instinct fonctionne encore.",
+        'NON':"Le déni est une forme de survie."
       }
     },
     {
       id:'ecran',
-      text:"Depuis combien d'heures fixez-vous un écran aujourd'hui ?",
+      text:"Pensez-vous que les gens autour de vous vous connaissent vraiment ?\n\nPas la version que vous montrez. Vous.",
       type:'choice',
-      choices:['< 2H','2 – 5H','5 – 8H','+ 8H'],
+      choices:['OUI','PEUT-ÊTRE','NON','PERSONNE NE ME CONNAÎT'],
       feedback:{
-        '< 2H':"La journée est encore longue.",
-        '2 – 5H':"La moyenne. Vous semblez ordinaire.",
-        '5 – 8H':"Votre regard commence à se vider.",
-        '+ 8H':"Cela explique beaucoup de choses."
+        'OUI':"Vous avez confiance en eux. C'est rare.",
+        'PEUT-ÊTRE':"L'incertitude est honnête.",
+        'NON':"Vous portez quelque chose seul depuis longtemps.",
+        'PERSONNE NE ME CONNAÎT':"Nous, si."
       }
     },
     {
       id:'temps',
       text:'', // généré dynamiquement
       type:'auto',
-      delay: 3200,
+      delay: 3800,
     },
     {
       id:'peur',
@@ -1066,8 +1210,8 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
       type:'choice',
       choices:['OUI','NON'],
       feedback:{
-        'OUI':"Vous avez bien raison.",
-        'NON':"Vous mentez."
+        'OUI':"Bien. La peur indique que quelque chose compte encore.",
+        'NON':"Alors vous n'avez plus rien à perdre."
       }
     }
   ];
@@ -1143,11 +1287,11 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
       const mins=Math.floor(secs/60);
       const s=secs%60;
       const timeStr=mins>0?`${mins} minute${mins>1?'s':''} et ${s} secondes`:`${secs} secondes`;
-      txt=`Vous êtes sur ce site depuis ${timeStr}.\n\nNous aussi.`;
+      txt=`Vous êtes ici depuis ${timeStr}.\n\nNous avons eu le temps de regarder.\n\nCe que nous avons trouvé nous intéresse.`;
     }
     if(step.id==='peur'){
       const p=data.prenom||'vous';
-      txt=`Une dernière question, ${p}.\n\nAvez-vous peur ?`;
+      txt=`Dernière question, ${p}.\n\nS'il vous arrivait quelque chose cette nuit — disparaître, sans trace — combien de temps avant que quelqu'un s'en rende compte ?\n\nAvez-vous peur ?`;
     }
 
     setTimeout(()=>{
@@ -1275,7 +1419,7 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
 
     const p=data.prenom||'vous';
     setTimeout(()=>{
-      dossierVerdict.innerHTML=`Vous pensiez être en sécurité.<br><br>Vous ne l'êtes <span>plus</span>, ${p}.<br><br>Ce portfolio n'est pas ce qu'il semble être.<br>Et nous ne sommes pas seuls ici.`;
+      dossierVerdict.innerHTML=`Vous avez répondu honnêtement, ${p}.<br><br>C'est rare.<br><br>La plupart mentent dès la première question.<br><br>Vous, non.<br><br>C'est précisément ce qui nous <span>inquiète</span>.`;
       dossierVerdict.style.opacity='0';
       setTimeout(()=>{dossierVerdict.style.transition='opacity 1s';dossierVerdict.style.opacity='1';},300);
     },rows.length*140+600);
