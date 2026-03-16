@@ -1079,15 +1079,172 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
   animation:scanMove 6s linear infinite;
 }
 @keyframes scanMove{from{top:-2px}to{top:100%}}
+
+/* ═══ SILHOUETTE ═══ */
+#arg-silhouette{
+  position:absolute;inset:0;z-index:5;pointer-events:none;
+  display:flex;align-items:flex-end;justify-content:flex-end;
+  padding-right:8%;padding-bottom:0;
+  opacity:0;transition:opacity 4s ease;
+}
+#arg-silhouette svg{
+  width:clamp(180px,22vw,320px);
+  filter:blur(3px) brightness(0.12);
+  opacity:0;transition:opacity 6s ease;
+  transform:scaleX(-1);
+}
+#arg-silhouette.visible svg{opacity:1;}
+#arg-silhouette.visible{opacity:1;}
+
+/* ═══ FISSURES GLOBALES (toute la page) ═══ */
+#page-cracks{
+  position:fixed;inset:0;z-index:7500;pointer-events:none;
+  opacity:0;transition:opacity 2s ease;
+}
+#page-cracks.active{opacity:1;}
+#page-cracks svg{width:100%;height:100%;position:absolute;inset:0;}
+
+/* ═══ FLASH CAMÉRA ═══ */
+#cam-flash{
+  position:fixed;inset:0;z-index:9500;pointer-events:none;
+  background:#fff;opacity:0;transition:opacity 0.08s;
+}
+
+/* ═══ MURMURE PRENOM overlay ═══ */
+#whisper-overlay{
+  position:fixed;inset:0;z-index:9600;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+}
+#whisper-text{
+  font-family:'Courier New',monospace;
+  font-size:clamp(3rem,8vw,7rem);
+  color:rgba(255,255,255,0.04);
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  font-weight:900;
+  text-align:center;
+  filter:blur(1px);
+  animation:whisperPulse 3s ease-in-out infinite;
+}
+@keyframes whisperPulse{
+  0%,100%{opacity:0.04;transform:scale(1);}
+  50%{opacity:0.09;transform:scale(1.02);}
+}
+
+/* ═══ DONNÉES SYSTÈME (dossier extra) ═══ */
+.dossier-sys-data{
+  margin-top:1.5rem;
+  padding:1rem 1.5rem;
+  border:1px solid rgba(180,0,0,.2);
+  background:rgba(0,0,0,.6);
+  font-size:.7rem;
+  line-height:2;
+  color:rgba(180,0,0,.6);
+  letter-spacing:.05em;
+}
+.dossier-sys-data .sys-line{display:block;}
+.dossier-sys-data .sys-line span{color:rgba(255,255,255,.3);}
+
+/* ═══ OVERLAY CAMÉRA ═══ */
+#cam-overlay{
+  position:fixed;top:1.5rem;right:1.5rem;z-index:9400;
+  width:140px;height:90px;
+  background:#000;border:1px solid rgba(180,0,0,.5);
+  overflow:hidden;opacity:0;transition:opacity 1.5s ease;
+  display:flex;align-items:center;justify-content:center;
+}
+#cam-overlay.active{opacity:1;}
+#cam-overlay video{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(0.7) contrast(1.3);}
+#cam-label{
+  position:absolute;top:4px;left:6px;
+  font-family:'Courier New',monospace;font-size:.5rem;
+  color:rgba(180,0,0,.8);letter-spacing:.15em;
+}
+#cam-dot{
+  position:absolute;top:5px;right:7px;
+  width:5px;height:5px;border-radius:50%;
+  background:#c00;animation:camBlink 1.2s infinite;
+}
+@keyframes camBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ═══ BATTERY / SYSTEM BAR ═══ */
+#sys-bar{
+  position:absolute;bottom:.8rem;left:50%;transform:translateX(-50%);
+  font-size:.5rem;letter-spacing:.12em;color:rgba(180,0,0,.35);
+  font-family:'Courier New',monospace;z-index:30;
+  opacity:0;transition:opacity 1s;
+}
+#sys-bar.visible{opacity:1;}
 </style>
 
 <!-- OVERLAY ARG -->
+<!-- Fissures globales pleine page -->
+<div id="page-cracks">
+  <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="crackGlow2"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <g stroke="rgba(200,220,255,0.55)" fill="none" stroke-linecap="round" filter="url(#crackGlow2)">
+      <!-- centre haut -->
+      <polyline points="960,0 955,90 940,180 960,270 945,400 970,520 950,680 940,900 955,1080" stroke-width="1.5"/>
+      <!-- fissure gauche -->
+      <polyline points="0,300 120,310 250,290 400,315 580,300 750,320 900,305 960,270" stroke-width="1.2"/>
+      <polyline points="0,600 80,590 200,610 380,595 550,615 720,600 870,610 960,600" stroke-width="1"/>
+      <!-- fissure droite -->
+      <polyline points="1920,200 1780,215 1640,200 1480,220 1320,205 1160,220 1040,210 960,270" stroke-width="1.2"/>
+      <polyline points="1920,750 1800,740 1660,755 1500,740 1350,758 1200,745 1060,755 960,740" stroke-width="1"/>
+      <!-- diagonales -->
+      <polyline points="0,0 180,120 320,80 500,200 680,160 820,280 960,270" stroke-width="0.9" opacity="0.7"/>
+      <polyline points="1920,0 1740,130 1580,90 1400,210 1220,170 1080,290 960,270" stroke-width="0.9" opacity="0.7"/>
+      <polyline points="0,1080 160,950 300,980 480,860 660,900 820,770 960,740" stroke-width="0.9" opacity="0.7"/>
+      <polyline points="1920,1080 1750,960 1600,990 1420,870 1240,910 1090,780 960,740" stroke-width="0.9" opacity="0.7"/>
+      <!-- fissures secondaires -->
+      <polyline points="320,80 310,200 330,350 315,480" stroke-width="0.6" opacity="0.5"/>
+      <polyline points="1600,90 1610,220 1590,370 1605,500" stroke-width="0.6" opacity="0.5"/>
+      <polyline points="480,860 470,750 490,650 475,550" stroke-width="0.6" opacity="0.5"/>
+      <polyline points="1420,870 1430,760 1410,660 1425,560" stroke-width="0.6" opacity="0.5"/>
+      <polyline points="250,290 240,400 260,500 245,600" stroke-width="0.5" opacity="0.4"/>
+      <polyline points="1660,200 1670,310 1650,420 1665,530" stroke-width="0.5" opacity="0.4"/>
+    </g>
+    <!-- Halo central d'impact -->
+    <circle cx="960" cy="540" r="280" fill="none" stroke="rgba(150,180,255,0.12)" stroke-width="3"/>
+    <circle cx="960" cy="540" r="180" fill="none" stroke="rgba(150,180,255,0.08)" stroke-width="2"/>
+  </svg>
+</div>
+<!-- Flash cam -->
+<div id="cam-flash"></div>
+<!-- Overlay caméra -->
+<div id="cam-overlay"><video id="cam-video" autoplay muted playsinline></video><div id="cam-label">⬤ FLUX ACTIF</div><div id="cam-dot"></div></div>
+<!-- Murmure prénom -->
+<div id="whisper-overlay"><div id="whisper-text"></div></div>
+
 <div id="arg-overlay">
   <div class="arg-scanline-glitch"></div>
   <div id="arg-topbar">
     <span>PROTOCOLE FATELA · v2.1.7</span>
     <span id="arg-topbar-r">SESSION : <span id="arg-session-id">--</span></span>
   </div>
+
+  <!-- Silhouette fantomatique -->
+  <div id="arg-silhouette">
+    <svg viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg" fill="#ffffff">
+      <!-- tête -->
+      <ellipse cx="100" cy="52" rx="38" ry="48"/>
+      <!-- cou -->
+      <rect x="86" y="96" width="28" height="22"/>
+      <!-- corps -->
+      <path d="M55 118 Q45 160 42 210 Q40 260 44 310 Q48 340 60 360 L80 358 Q78 310 80 260 Q82 230 100 220 Q118 230 120 260 Q122 310 120 358 L140 360 Q152 340 156 310 Q160 260 158 210 Q155 160 145 118 Z"/>
+      <!-- bras gauche levé -->
+      <path d="M55 130 Q30 110 10 80 Q5 70 8 62 Q14 52 22 58 Q36 68 52 90 Q60 105 62 125 Z"/>
+      <!-- bras droit -->
+      <path d="M145 130 Q165 155 175 185 Q180 200 175 210 Q168 218 160 212 Q150 200 142 175 Q138 155 140 130 Z"/>
+      <!-- jambes -->
+      <path d="M60 358 Q55 390 54 420 L76 420 Q78 390 80 358 Z"/>
+      <path d="M140 358 Q145 390 146 420 L124 420 Q122 390 120 358 Z"/>
+    </svg>
+  </div>
+  <div id="sys-bar" id="sys-bar"></div>
 
   <div id="arg-screen">
     <div id="arg-main">
@@ -1337,6 +1494,10 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     data.prenom=val.charAt(0).toUpperCase()+val.slice(1).toLowerCase();
     inputWrap.style.display='none';
     textInput.blur();
+    // Synthèse vocale du prénom (chuchoté, grave)
+    setTimeout(()=>chuchoterPrenom(data.prenom), 600);
+    // Watermark fantôme du prénom
+    setTimeout(()=>afficherMurmure(data.prenom), 1200);
     runStep(currentStep+1);
   });
   textInput.addEventListener('keydown',e=>{if(e.key==='Enter')confirmBtn.click();});
@@ -1418,10 +1579,18 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     });
 
     const p=data.prenom||'vous';
+
+    // Données système dans le dossier
+    setTimeout(()=>injecterDonneesSys(), rows.length*140+400);
+
     setTimeout(()=>{
       dossierVerdict.innerHTML=`Vous avez répondu honnêtement, ${p}.<br><br>C'est rare.<br><br>La plupart mentent dès la première question.<br><br>Vous, non.<br><br>C'est précisément ce qui nous <span>inquiète</span>.`;
       dossierVerdict.style.opacity='0';
       setTimeout(()=>{dossierVerdict.style.transition='opacity 1s';dossierVerdict.style.opacity='1';},300);
+      // Fissures qui envahissent la page au moment du verdict
+      setTimeout(()=>activerFissures(), 800);
+      // Chuchote le prénom une 2e fois, encore plus grave
+      setTimeout(()=>chuchoterPrenom(p), 1200);
     },rows.length*140+600);
   }
 
@@ -1436,6 +1605,14 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     overlay.style.display='none';
     scareEl.style.display='flex';
     document.body.style.overflow='hidden';
+    // Nettoyage effets
+    desactiverSilhouette();
+    stopCamera();
+    desactiverFissures();
+    document.getElementById('whisper-overlay').style.opacity='0';
+    document.getElementById('sys-bar').classList.remove('visible');
+    // Dernier chuchotement juste au moment du scare
+    if(data.prenom) chuchoterPrenom(data.prenom);
 
     // Générer son de respiration via Web Audio
     let audioCtxS = null;
@@ -1497,6 +1674,164 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     },30000);
   }
 
+  /* ══════════════════════════════════════════
+     EFFETS HORRIFIQUES
+  ══════════════════════════════════════════ */
+
+  /* ── Collecte données système ── */
+  function getSysData(){
+    const bat = navigator.getBattery ? navigator.getBattery() : null;
+    return {
+      resolution: `${screen.width}×${screen.height}`,
+      viewport: `${window.innerWidth}×${window.innerHeight}`,
+      langue: navigator.language || 'INCONNUE',
+      plateforme: navigator.platform || 'INCONNUE',
+      touchpoints: navigator.maxTouchPoints || 0,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'INCONNUE',
+      cookiesActifs: navigator.cookieEnabled ? 'OUI' : 'NON',
+      connexion: navigator.onLine ? 'EN LIGNE' : 'HORS LIGNE',
+      ram: navigator.deviceMemory ? navigator.deviceMemory + ' Go' : 'INCONNUE',
+      threads: navigator.hardwareConcurrency || 'INCONNU',
+    };
+  }
+
+  /* ── Synthèse vocale du prénom ── */
+  function chuchoterPrenom(prenom){
+    if(!window.speechSynthesis || !prenom) return;
+    // Attendre que les voix soient chargées
+    function doSpeak(){
+      const voices = speechSynthesis.getVoices();
+      const utt = new SpeechSynthesisUtterance(prenom);
+      // Chercher une voix française sombre ou prendre la première dispo
+      const frVoice = voices.find(v=>v.lang.startsWith('fr')) || voices.find(v=>v.lang.startsWith('en')) || voices[0];
+      if(frVoice) utt.voice = frVoice;
+      utt.rate = 0.55;     // très lent
+      utt.pitch = 0.3;     // très grave
+      utt.volume = 0.6;
+      speechSynthesis.speak(utt);
+    }
+    if(speechSynthesis.getVoices().length > 0){
+      doSpeak();
+    } else {
+      speechSynthesis.onvoiceschanged = doSpeak;
+    }
+  }
+
+  /* ── Afficher le prénom en watermark fantôme ── */
+  function afficherMurmure(prenom){
+    const el = document.getElementById('whisper-text');
+    const overlay2 = document.getElementById('whisper-overlay');
+    el.textContent = prenom.toUpperCase();
+    overlay2.style.opacity = '1';
+    overlay2.style.transition = 'opacity 3s ease';
+  }
+
+  /* ── Caméra ── */
+  let camStream = null;
+  function activerCamera(){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:160, height:100}, audio:false})
+      .then(stream => {
+        camStream = stream;
+        const video = document.getElementById('cam-video');
+        const camDiv = document.getElementById('cam-overlay');
+        video.srcObject = stream;
+        // Apparition progressive après 1.5s
+        setTimeout(() => {
+          camDiv.classList.add('active');
+          // Flash blanc subtil
+          const flash = document.getElementById('cam-flash');
+          flash.style.opacity = '0.25';
+          setTimeout(()=>{ flash.style.transition='opacity 0.4s'; flash.style.opacity='0'; }, 80);
+        }, 1500);
+      })
+      .catch(()=>{}); // permission refusée : rien de visible
+  }
+
+  /* ── Stopper la caméra ── */
+  function stopCamera(){
+    if(camStream){
+      camStream.getTracks().forEach(t=>t.stop());
+      camStream = null;
+    }
+    document.getElementById('cam-overlay').classList.remove('active');
+  }
+
+  /* ── Fissures pleine page ── */
+  function activerFissures(){
+    const el = document.getElementById('page-cracks');
+    el.classList.add('active');
+  }
+  function desactiverFissures(){
+    document.getElementById('page-cracks').classList.remove('active');
+    document.getElementById('page-cracks').style.opacity = '0';
+  }
+
+  /* ── Données système dans dossier ── */
+  function injecterDonneesSys(){
+    const sys = getSysData();
+    const parent = document.getElementById('arg-dossier-inner');
+    const div = document.createElement('div');
+    div.className = 'dossier-sys-data';
+    div.innerHTML = `
+      <span class="sys-line">// DONNÉES SYSTÈME COLLECTÉES</span>
+      <span class="sys-line">RÉSOLUTION PHYSIQUE <span>${sys.resolution}</span></span>
+      <span class="sys-line">VIEWPORT ACTIF <span>${sys.viewport}</span></span>
+      <span class="sys-line">FUSEAU HORAIRE <span>${sys.timezone}</span></span>
+      <span class="sys-line">PLATEFORME <span>${sys.plateforme}</span></span>
+      <span class="sys-line">MÉMOIRE RAM <span>${sys.ram}</span></span>
+      <span class="sys-line">PROCESSEURS <span>${sys.threads} THREADS</span></span>
+      <span class="sys-line">COOKIES <span>${sys.cookiesActifs}</span></span>
+      <span class="sys-line">ÉTAT RÉSEAU <span>${sys.connexion}</span></span>
+      <span class="sys-line">POINTS DE CONTACT <span>${sys.touchpoints}</span></span>
+    `;
+    // Insérer avant le verdict
+    const verdict = document.getElementById('dossier-verdict');
+    parent.insertBefore(div, verdict);
+  }
+
+  /* ── Silhouette ── */
+  let silhouetteTimeout = null;
+  function activerSilhouette(){
+    const sil = document.getElementById('arg-silhouette');
+    // Apparition très progressive après 8s dans le questionnaire
+    silhouetteTimeout = setTimeout(()=>{
+      sil.classList.add('visible');
+    }, 8000);
+  }
+  function desactiverSilhouette(){
+    if(silhouetteTimeout) clearTimeout(silhouetteTimeout);
+    const sil = document.getElementById('arg-silhouette');
+    sil.classList.remove('visible');
+  }
+
+  /* ── Barre système (batterie etc.) ── */
+  async function activerSysBar(){
+    const bar = document.getElementById('sys-bar');
+    let batTxt = '';
+    try {
+      if(navigator.getBattery){
+        const bat = await navigator.getBattery();
+        const pct = Math.round(bat.level * 100);
+        const chg = bat.charging ? '⚡' : '▼';
+        batTxt = ` · BATTERIE ${chg} ${pct}%`;
+      }
+    } catch(e){}
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const ss = String(now.getSeconds()).padStart(2,'0');
+    bar.textContent = `${hh}:${mm}:${ss} · ${screen.width}×${screen.height} · ${navigator.platform}${batTxt} · SURVEILLANCE ACTIVE`;
+    bar.classList.add('visible');
+    // Mise à jour chaque seconde
+    setInterval(async()=>{
+      let b2 = '';
+      try { if(navigator.getBattery){ const bat=await navigator.getBattery(); const p=Math.round(bat.level*100); b2=` · BATTERIE ${bat.charging?'⚡':'▼'} ${p}%`; } } catch(e){}
+      const n=new Date(); const h=String(n.getHours()).padStart(2,'0'); const m2=String(n.getMinutes()).padStart(2,'0'); const s2=String(n.getSeconds()).padStart(2,'0');
+      bar.textContent=`${h}:${m2}:${s2} · ${screen.width}×${screen.height} · ${navigator.platform}${b2} · SURVEILLANCE ACTIVE`;
+    }, 1000);
+  }
+
   /* ── OPEN / CLOSE ── */
   function openARG(){
     if(argUsed)return;
@@ -1512,11 +1847,16 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     currentStep=0;
     setProgress(0,STEPS.length);
     statusEl.textContent='▶ EN ATTENTE DE RÉPONSE';
+
+    // Lancer les effets horrifiques progressifs
+    activerSilhouette();
+    activerSysBar();
+    setTimeout(()=>activerCamera(), 3000);  // caméra après 3s
+
     setTimeout(()=>runStep(0),800);
   }
 
   function closeARG(){
-    // ESC ou fermer -> scare screen
     triggerScare();
   }
 
