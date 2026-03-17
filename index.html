@@ -1201,8 +1201,8 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     setTimeout(()=>fSpeak('je te vois',0.4,0.15,0.8),3000);
     setTimeout(()=>{
       const vt=document.getElementById('fat-void-text');
-      vt.textContent='il était là
-depuis le début';
+      vt.textContent='il \u00e9tait l\u00e0\ndepuis le d\u00e9but';
+
       vt.classList.add('on');
     },4500);
 
@@ -1241,13 +1241,91 @@ depuis le début';
     },25000);
   }
 
-  /* ══ DÉCLENCHEMENT À 66 SECONDES ══ */
-  let fTriggered=false;
-  setTimeout(()=>{
+  /* ══ DÉCLENCHEMENT : SCROLL JUSQU'EN BAS ══ */
+  let fTriggered = false;
+
+  /* Glitch brutal sur toute la page avant de lancer */
+  function fGlitchPage(cb){
+    var body = document.body;
+    var glitchOverlay = document.createElement('div');
+    glitchOverlay.style.position='fixed';
+    glitchOverlay.style.inset='0';
+    glitchOverlay.style.zIndex='8999';
+    glitchOverlay.style.pointerEvents='none';
+    glitchOverlay.style.background='transparent';
+    document.body.appendChild(glitchOverlay);
+    fPlayGlitch();
+    var frame=0;
+    var totalFrames=18;
+    var effects=[
+      [0,0,0,0,1,1,1],
+      [-8,0,3,90,1.5,2,0],
+      [6,0,-2,180,0.3,3,2],
+      [-4,3,5,270,1.8,1.5,0],
+      [10,0,-4,0,0.5,2.5,1.5],
+      [0,0,0,0,1,1,1],
+      [-12,0,6,120,2,3,0],
+      [8,-2,-3,240,0.2,4,3],
+      [0,0,0,0,1,1,1],
+      [-6,0,2,60,1.6,2,0.5],
+      [4,0,-5,300,0.4,3.5,2],
+      [0,0,0,0,1,1,1],
+      [-10,2,4,150,1.9,2.5,0],
+      [7,0,-2,330,0.3,4,1],
+      [0,0,0,0,1,1,1],
+      [-4,0,1,0,1.2,1.5,1],
+      [2,0,-1,0,0.8,2,1],
+      [0,0,0,0,1,1,1]
+    ];
+    function applyFrame(){
+      if(frame>=totalFrames){
+        body.style.transform='';
+        body.style.filter='';
+        glitchOverlay.remove();
+        setTimeout(cb,80);
+        return;
+      }
+      var e=effects[frame%effects.length];
+      var tx=e[0],ty=e[1],sk=e[2],hr=e[3],br=e[4],ct=e[5],sat=e[6];
+      body.style.transform='translate('+tx+'px,'+ty+'px) skewX('+sk+'deg)';
+      body.style.filter='hue-rotate('+hr+'deg) brightness('+br+') contrast('+ct+') saturate('+sat+')';
+      glitchOverlay.innerHTML='';
+      var numBands=Math.floor(Math.random()*4)+1;
+      for(var i=0;i<numBands;i++){
+        var band=document.createElement('div');
+        var h=Math.random()*40+5;
+        var top=Math.random()*100;
+        var col=Math.random()<0.5?'rgba(255,0,60,0.15)':'rgba(0,200,255,0.12)';
+        band.style.position='absolute';
+        band.style.left='0';
+        band.style.right='0';
+        band.style.top=top+'%';
+        band.style.height=h+'px';
+        band.style.background=col;
+        glitchOverlay.appendChild(band);
+      }
+      frame++;
+      fPlayGlitch();
+      setTimeout(applyFrame,55);
+    }
+    applyFrame();
+  }
+
+  /* Détection scroll bas */
+  function isAtBottom(){
+    return (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80);
+  }
+
+  window.addEventListener('scroll', ()=>{
     if(fTriggered) return;
-    fTriggered=true;
-    fatBoot();
-  }, 66000);
+    if(isAtBottom()){
+      fTriggered = true;
+      // Petite pause naturelle puis glitch puis FATELA
+      setTimeout(()=>{
+        fGlitchPage(()=>fatBoot());
+      }, 600);
+    }
+  }, {passive:true});
 
 })();
 </script>
