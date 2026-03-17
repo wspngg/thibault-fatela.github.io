@@ -1072,22 +1072,30 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
   function fPlayHeartbeat(){
     try{
       var ctx = fGetAudio();
-      // Boom 1
-      var b1 = ctx.createOscillator();
-      var g1 = ctx.createGain();
-      b1.type='sine'; b1.frequency.value=80;
-      g1.gain.setValueAtTime(0.7, ctx.currentTime);
-      g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.18);
-      b1.connect(g1); g1.connect(ctx.destination);
-      b1.start(ctx.currentTime); b1.stop(ctx.currentTime+0.18);
-      // Boom 2 (plus sourd)
-      var b2 = ctx.createOscillator();
-      var g2 = ctx.createGain();
-      b2.type='sine'; b2.frequency.value=55;
-      g2.gain.setValueAtTime(0.5, ctx.currentTime+0.12);
-      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.32);
-      b2.connect(g2); g2.connect(ctx.destination);
-      b2.start(ctx.currentTime+0.12); b2.stop(ctx.currentTime+0.32);
+      function boom(t, freq, vol, decay){
+        var osc = ctx.createOscillator();
+        var g   = ctx.createGain();
+        osc.type='sine'; osc.frequency.value=freq;
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t+decay);
+        // echo : meme son -12dB apres 180ms
+        var osc2 = ctx.createOscillator();
+        var g2   = ctx.createGain();
+        osc2.type='sine'; osc2.frequency.value=freq*0.98;
+        g2.gain.setValueAtTime(vol*0.22, t+0.18);
+        g2.gain.exponentialRampToValueAtTime(0.001, t+0.18+decay*0.7);
+        // distortion legere
+        var wave = ctx.createWaveShaper();
+        var curve = new Float32Array(256);
+        for(var i=0;i<256;i++){ var x=i*2/256-1; curve[i]=x<0?-Math.pow(-x,0.7):Math.pow(x,0.7); }
+        wave.curve = curve;
+        osc.connect(wave); wave.connect(g); g.connect(ctx.destination);
+        osc2.connect(g2); g2.connect(ctx.destination);
+        osc.start(t); osc.stop(t+decay+0.05);
+        osc2.start(t+0.18); osc2.stop(t+0.18+decay);
+      }
+      boom(ctx.currentTime,       85, 0.8, 0.22);
+      boom(ctx.currentTime+0.13, 58, 0.55, 0.28);
     }catch(e){}
   }
   function fStartHeartbeat(){
@@ -1106,27 +1114,47 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     fHeartInterval = null;
   }
 
-  /* ── Son strident (jump scare audio) ── */
+  /* ── Son strident ameliore : crescendo + pic + coupure ── */
   function fPlayScream(){
     try{
       var ctx = fGetAudio();
-      // Bruit blanc aigu tres court
-      var bufLen = ctx.sampleRate * 0.9;
-      var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
-      var d = buf.getChannelData(0);
-      for(var i=0;i<bufLen;i++){
-        // Envelope : attaque instantanee, decay rapide
-        var env = Math.pow(1 - i/bufLen, 1.5);
-        d[i] = (Math.random()*2-1) * env * 0.9;
+      var dur = 1.4;
+      var sr  = ctx.sampleRate;
+      var len = Math.floor(sr * dur);
+      var buf = ctx.createBuffer(1, len, sr);
+      var d   = buf.getChannelData(0);
+      for(var i=0;i<len;i++){
+        var t   = i/len;
+        // crescendo jusqu'a 70% puis coupe nette
+        var env = t < 0.70 ? Math.pow(t/0.70, 0.4) : Math.pow(1-(t-0.70)/0.30, 0.2);
+        // frequence qui monte de 600Hz à 4200Hz
+        var freq = 600 + 3600*t;
+        var sine = Math.sin(2*Math.PI*freq*(i/sr));
+        var noise = (Math.random()*2-1)*0.35;
+        d[i] = (sine*0.65 + noise)*env;
       }
-      var src = ctx.createBufferSource();
-      var flt = ctx.createBiquadFilter();
-      flt.type = 'highpass';
-      flt.frequency.value = 2800;
+      var src  = ctx.createBufferSource();
+      var flt  = ctx.createBiquadFilter();
+      flt.type = 'bandpass'; flt.frequency.value = 2200; flt.Q.value = 0.6;
+      var flt2 = ctx.createBiquadFilter();
+      flt2.type = 'peaking'; flt2.frequency.value = 3800; flt2.gain.value = 14;
       var gain = ctx.createGain();
-      gain.gain.value = 1.8;
-      src.buffer = buf;
-      src.connect(flt); flt.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(2.2, ctx.currentTime + 0.9);
+      gain.gain.setValueAtTime(0, ctx.currentTime + 1.4);
+      // Reverb simple via convolver
+      var convBuf = ctx.createBuffer(2, sr*1.5, sr);
+      for(var ch=0;ch<2;ch++){
+        var cd=convBuf.getChannelData(ch);
+        for(var j=0;j<cd.length;j++) cd[j]=(Math.random()*2-1)*Math.pow(1-j/cd.length,2.5)*0.4;
+      }
+      var conv = ctx.createConvolver(); conv.buffer=convBuf;
+      var wet  = ctx.createGain(); wet.gain.value=0.3;
+      var dry  = ctx.createGain(); dry.gain.value=1.0;
+      src.buffer=buf;
+      src.connect(flt); flt.connect(flt2);
+      flt2.connect(dry);  dry.connect(gain);  gain.connect(ctx.destination);
+      flt2.connect(conv); conv.connect(wet);  wet.connect(ctx.destination);
       src.start();
     }catch(e){}
   }
@@ -1270,45 +1298,105 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     const elapsed=Math.round((Date.now()-fEnterTime)/1000);
     document.getElementById('fat-term-ts').textContent=`${s.time} · ${s.tz}`;
 
-    const lines=[
-      {t:`[${s.time}] INIT process FATELA.EXE · PID 6660`,c:'dim',d:300},
-      {t:`[SYS] Résolution détectée : ${s.res}`,c:'dim',d:900},
-      {t:`[SYS] Viewport actif : ${s.vp}`,c:'dim',d:1400},
-      {t:`[SYS] Langue système : ${s.lang}`,c:'dim',d:1900},
-      {t:`[SYS] Fuseau : ${s.tz}`,c:'dim',d:2400},
-      {t:`[SYS] Plateforme : ${s.platform}`,c:'dim',d:2900},
-      {t:`[SYS] Cœurs CPU : ${s.cores} · RAM : ${s.ram}`,c:'dim',d:3400},
-      {t:`[SYS] État réseau : ${s.online}`,c:'dim',d:3900},
-      {t:`[WARN] Processus secondaire actif depuis ${elapsed} secondes`,c:'',d:4800},
-      {t:`[WARN] Flux de données non chiffré détecté`,c:'',d:5600},
-      {t:`[ERR] Isolation impossible — processus racine compromis`,c:'red',d:6500},
-      {t:`[ERR] Accès aux fichiers système — AUTORISÉ`,c:'red',d:7400},
-      {t:`[ERR] Surveillance de la session activée`,c:'red',d:8200},
-      {t:`...`,c:'dim',d:9200},
-      {t:`...`,c:'dim',d:10500},
-      {t:``,c:'',d:12000},
-      {t:`SUJET IDENTIFIÉ`,c:'slow',d:13500},
-      {t:`OBSERVATION EN COURS DEPUIS ${elapsed} SECONDES`,c:'slow',d:15500},
-      {t:``,c:'',d:17000},
-      {t:`nous savons que tu es seul.`,c:'final',d:19000},
-    ];
+    var body=document.getElementById('fat-term-body');
 
-    const body=document.getElementById('fat-term-body');
-    lines.forEach(({t,c,d})=>{
-      setTimeout(()=>{
-        const span=document.createElement('span');
-        span.className='ftl'+(c?' '+c:'');
-        span.textContent=t;
+    // Ajouter une ligne normale
+    function addLine(text, cls, delay){
+      setTimeout(function(){
+        var span=document.createElement('span');
+        span.className='ftl'+(cls?' '+cls:'');
+        span.textContent=text;
+        span.style.opacity='0';
         body.appendChild(span);
-        setTimeout(()=>span.style.opacity='1',30);
+        setTimeout(function(){span.style.opacity='1';},30);
         body.scrollTop=body.scrollHeight;
-        if(c==='red'||c==='slow'||c==='final') fPlayGlitch();
-      },d);
-    });
+        if(cls==='red'||cls==='slow'||cls==='final') fPlayGlitch();
+      }, delay);
+    }
 
-    setTimeout(()=>fPlayBreath(0.8),19500);
-    setTimeout(()=>fFlash(.5,150),13500);
-    setTimeout(fatVoid,33000);
+    // Ligne qui s'écrit caractère par caractère puis se corrompt partiellement
+    function addGlitchLine(text, cls, delay, corruptAt){
+      setTimeout(function(){
+        var span=document.createElement('span');
+        span.className='ftl'+(cls?' '+cls:'');
+        span.style.opacity='1';
+        body.appendChild(span);
+        var i=0;
+        var glitchChars='!@#$%^&*<>/|\[]~█▓▒░01';
+        var iv=setInterval(function(){
+          if(i<=text.length){
+            var displayed=text.substring(0,i);
+            if(i<text.length) displayed+=glitchChars[Math.floor(Math.random()*glitchChars.length)];
+            span.textContent=displayed;
+            i++;
+          } else {
+            clearInterval(iv);
+            // Corrompre aléatoirement certains chars
+            if(corruptAt){
+              var arr=text.split('');
+              corruptAt.forEach(function(idx){
+                if(arr[idx]) arr[idx]=glitchChars[Math.floor(Math.random()*glitchChars.length)];
+              });
+              span.textContent=arr.join('');
+            }
+          }
+          body.scrollTop=body.scrollHeight;
+        }, 28);
+        fPlayGlitch();
+      }, delay);
+    }
+
+    // Ligne qui apparaît puis s'efface partiellement (corruption)
+    function addCorruptLine(text, cls, delay){
+      setTimeout(function(){
+        var span=document.createElement('span');
+        span.className='ftl'+(cls?' '+cls:'');
+        span.textContent=text;
+        span.style.opacity='0';
+        body.appendChild(span);
+        setTimeout(function(){ span.style.opacity='1'; }, 30);
+        // S'efface progressivement lettre par lettre depuis la fin
+        setTimeout(function(){
+          var arr=span.textContent.split('');
+          var eraseIv=setInterval(function(){
+            var idx=Math.floor(Math.random()*arr.length);
+            arr[idx]=' ';
+            span.textContent=arr.join('');
+            if(arr.join('').trim().length===0) clearInterval(eraseIv);
+          }, 40);
+        }, 1800);
+        body.scrollTop=body.scrollHeight;
+      }, delay);
+    }
+
+    // Séquence chaotique
+    addLine('['+s.time+'] INIT process FATELA.EXE · PID 6660', 'dim', 300);
+    addGlitchLine('[SYS] Resolution: '+s.res+' · VP:'+s.vp, 'dim', 800, [12,18]);
+    addLine('[SYS] Langue: '+s.lang+' · TZ: '+s.tz, 'dim', 1500);
+    addCorruptLine('[SYS] Plateforme: '+s.platform+' · CPU:'+s.cores+' · RAM:'+s.ram, 'dim', 2100);
+    addGlitchLine('[SYS] Réseau: '+s.online, 'dim', 2700, []);
+    // Fausse ligne d'erreur qui s'écrit par dessus
+    addLine('[WARN] Processus actif depuis '+elapsed+'s — NON TERMINABLE', '', 3600);
+    addCorruptLine('[WARN] Flux sortant détecté · destination: INCONNUE', '', 4400);
+    addGlitchLine('[ERR] 0x4F3A: ISOLATION ECHOUEE · ACCES RACINE OBTENU', 'red', 5200, [5,6,7]);
+    addLine('[ERR] Fichiers système · lecture: AUTORISEE', 'red', 6100);
+    addGlitchLine('[ERR] Camera · micro · réseau · presse-papier: LUS', 'red', 7000, [20,21]);
+    addCorruptLine('[ERR] Chiffrement désactivé sur port 443', 'red', 7800);
+    // Chaos — lignes qui se chevauchent visuellement
+    addLine('', 'dim', 8800);
+    addGlitchLine('0x00 0x00 0x00 0xFF 0xFF 0xDE 0xAD', 'dim', 9200, [3,4,5]);
+    addLine('', '', 10200);
+    // Ralentissement — les 3 lignes finales
+    addGlitchLine('SUJET  IDENTIFIÉ', 'slow', 12000, []);
+    setTimeout(function(){ fFlash(.6, 120); }, 12000);
+    addLine('OBSERVATION : '+elapsed+' SECONDES · LOCALISATION : '+s.tz, 'slow', 14200);
+    addLine('ADRESSE DÉTECTÉE : LOCALHOST', 'red', 16000);
+    setTimeout(function(){ fFlash(.4, 100); }, 16000);
+    addLine('', '', 17500);
+    addGlitchLine('nous savons que tu es seul.', 'final', 18500, []);
+
+    setTimeout(function(){fPlayBreath(0.8);}, 19000);
+    setTimeout(fatVoid, 31000);
   }
 
   function fatVoid(){
@@ -1396,9 +1484,47 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     // Texte final après 7s
     setTimeout(function(){ ft.classList.add('on'); }, 7000);
 
+    // ── IMAGE QUI BOUGE QUAND ON REGARDE PAS ──
+    // À 8s : noir soudain 300ms (l'utilisateur "cligne des yeux")
+    // puis l'image réapparaît légèrement plus grande et décalée
+    setTimeout(function(){
+      // Noir brutal
+      bg.style.transition='none';
+      bg.style.background='#000';
+      sil.style.transition='opacity 0s';
+      sil.style.opacity='0';
+      fPlayGlitch();
+      setTimeout(function(){
+        // Réapparaît — plus proche, légèrement décalée
+        sil.style.width='min(85vw,620px)';
+        sil.style.marginTop='-3vh';
+        sil.style.marginLeft='2vw';
+        sil.style.opacity='1';
+        bg.style.background='#000';
+        fPlayGlitch();
+      }, 320);
+    }, 8000);
+
+    // À 14s : même chose, encore plus proche
+    setTimeout(function(){
+      sil.style.transition='opacity 0s';
+      sil.style.opacity='0';
+      fPlayGlitch();
+      setTimeout(function(){
+        sil.style.width='min(100vw,780px)';
+        sil.style.marginTop='-8vh';
+        sil.style.marginLeft='-4vw';
+        sil.style.opacity='1';
+        fPlayGlitch();
+        // Son de respiration au moment où elle réapparaît
+        fPlayBreath(1.2);
+      }, 280);
+    }, 14000);
+
     // Retour portfolio après 24s avec fade lent
     setTimeout(function(){
       var overlay=document.getElementById('fatela-overlay');
+      fStopHeartbeat();
       overlay.style.transition='opacity 3s ease';
       overlay.style.opacity='0';
       setTimeout(function(){
@@ -1407,8 +1533,37 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
         overlay.style.transition='';
         document.body.style.overflow='';
         fLeaveTraces();
+        fResidualGlitch();
       }, 3200);
     }, 24000);
+  }
+
+  // ── GLITCH RÉSIDUEL : persiste 12s sur le portfolio ──
+  function fResidualGlitch(){
+    var lines = [];
+    var endTime = Date.now() + 12000;
+    function spawnLine(){
+      if(Date.now() > endTime){ lines.forEach(function(l){ if(l.parentNode) l.parentNode.removeChild(l); }); return; }
+      var line = document.createElement('div');
+      var h    = Math.random()*3+1;
+      var top  = Math.random()*100;
+      var col  = Math.random()<0.5 ? 'rgba(255,0,60,0.12)' : 'rgba(0,180,255,0.10)';
+      line.style.cssText='position:fixed;left:0;right:0;top:'+top+'vh;height:'+h+'px;background:'+col+';pointer-events:none;z-index:8888;';
+      document.body.appendChild(line);
+      lines.push(line);
+      var life = Math.random()*600+200;
+      setTimeout(function(){ if(line.parentNode) line.parentNode.removeChild(line); }, life);
+      setTimeout(spawnLine, Math.random()*350+80);
+    }
+    // Quelques flashs résiduels
+    var flashCount=0;
+    function residualFlash(){
+      if(flashCount++ > 5) return;
+      fFlash(0.08+Math.random()*0.12, 40);
+      setTimeout(residualFlash, Math.random()*1800+400);
+    }
+    spawnLine();
+    residualFlash();
   }
 
   /* ── Traces persistantes ── */
