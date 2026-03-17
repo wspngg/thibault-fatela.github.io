@@ -823,12 +823,36 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
 }
 @keyframes scareFaceFlicker{
   0%,100%{filter:brightness(0.85) contrast(1.1)}
-  8%{filter:brightness(1.1) contrast(1.4) hue-rotate(5deg)}
-  9%{filter:brightness(0.6) contrast(1.6)}
+  8%{filter:brightness(1.15) contrast(1.5) hue-rotate(8deg)}
+  9%{filter:brightness(0.5) contrast(1.8)}
   10%{filter:brightness(0.85) contrast(1.1)}
-  45%{filter:brightness(0.8) contrast(1.2)}
-  46%{filter:brightness(1.05) contrast(1.5) saturate(0.4)}
+  45%{filter:brightness(0.75) contrast(1.3)}
+  46%{filter:brightness(1.1) contrast(1.6) saturate(0.3)}
   47%{filter:brightness(0.85) contrast(1.1)}
+}
+/* Shake + zoom combinés dans un seul keyframe via scale croissant */
+@keyframes faceShakeSlow{
+  0%  {transform:translate(0,0)   scale(1.00)}
+  10% {transform:translate(-3px,1px) scale(1.02)}
+  20% {transform:translate(3px,-2px) scale(1.04)}
+  30% {transform:translate(-2px,2px) scale(1.07)}
+  40% {transform:translate(2px,-1px) scale(1.10)}
+  50% {transform:translate(-3px,0px) scale(1.13)}
+  60% {transform:translate(3px,2px)  scale(1.17)}
+  70% {transform:translate(-2px,-2px) scale(1.21)}
+  80% {transform:translate(2px,1px)  scale(1.26)}
+  90% {transform:translate(-3px,2px) scale(1.31)}
+  100%{transform:translate(0,0)   scale(1.40)}
+}
+@keyframes faceShakeFast{
+  0%  {transform:translate(-5px,2px)  scale(var(--sc,1))}
+  15% {transform:translate(5px,-3px)  scale(var(--sc,1))}
+  30% {transform:translate(-4px,4px)  scale(var(--sc,1))}
+  45% {transform:translate(4px,-2px)  scale(var(--sc,1))}
+  60% {transform:translate(-6px,1px)  scale(var(--sc,1))}
+  75% {transform:translate(6px,-4px)  scale(var(--sc,1))}
+  90% {transform:translate(-3px,3px)  scale(var(--sc,1))}
+  100%{transform:translate(3px,-1px)  scale(var(--sc,1))}
 }
 #fat-final-txt{
   position:absolute;bottom:11%;left:50%;transform:translateX(-50%);
@@ -983,6 +1007,130 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     }catch(e){}
   }
 
+  /* ── Battement de coeur qui s'accélère ── */
+  var fHeartbeatStop = false;
+  function fStartHeartbeat(){
+    fHeartbeatStop = false;
+    var bpm = 55;
+    var startTime = Date.now();
+    function beat(){
+      if(fHeartbeatStop) return;
+      try{
+        var ctx=fGetAudio();
+        // Battement : deux impulsions (lub-dub)
+        function pulse(t, vol){
+          var buf=ctx.createBuffer(1,ctx.sampleRate*0.09,ctx.sampleRate);
+          var d=buf.getChannelData(0);
+          for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2)*vol;
+          var src=ctx.createBufferSource();
+          var flt=ctx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=120;
+          var gain=ctx.createGain(); gain.gain.value=2.5;
+          src.buffer=buf; src.connect(flt); flt.connect(gain); gain.connect(ctx.destination);
+          src.start(t);
+        }
+        var now=ctx.currentTime;
+        pulse(now, 1.0);
+        pulse(now+0.18, 0.7);
+        // BPM accélère avec le temps (55 → 140 sur 90s)
+        var elapsed=(Date.now()-startTime)/1000;
+        bpm = Math.min(55 + elapsed*1.0, 140);
+        var interval = 60000/bpm;
+        setTimeout(beat, interval);
+      }catch(e){}
+    }
+    beat();
+  }
+  function fStopHeartbeat(){ fHeartbeatStop=true; }
+
+  /* ── Son strident (jump scare audio) ── */
+  function fPlayScream(){
+    try{
+      var ctx=fGetAudio();
+      var duration=1.8;
+      var buf=ctx.createBuffer(1,ctx.sampleRate*duration,ctx.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++){
+        var t=i/d.length;
+        // Bruit blanc filtré + fréquence qui monte
+        var env = t<0.05 ? t/0.05 : Math.pow(1-t, 0.4);
+        d[i]=(Math.random()*2-1)*env;
+      }
+      var src=ctx.createBufferSource();
+      // Filtre passe-haut pour effet strident
+      var flt=ctx.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=2000;
+      var flt2=ctx.createBiquadFilter(); flt2.type='peaking'; flt2.frequency.value=3500; flt2.gain.value=18;
+      var gain=ctx.createGain(); gain.gain.value=1.8;
+      src.buffer=buf;
+      src.connect(flt); flt.connect(flt2); flt2.connect(gain); gain.connect(ctx.destination);
+      src.start();
+    }catch(e){}
+  }
+
+  /* ── Battement de coeur qui s'accelere ── */
+  var fHeartInterval = null;
+  var fHeartBPM = 55;
+  function fPlayHeartbeat(){
+    try{
+      var ctx = fGetAudio();
+      // Boom 1
+      var b1 = ctx.createOscillator();
+      var g1 = ctx.createGain();
+      b1.type='sine'; b1.frequency.value=80;
+      g1.gain.setValueAtTime(0.7, ctx.currentTime);
+      g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.18);
+      b1.connect(g1); g1.connect(ctx.destination);
+      b1.start(ctx.currentTime); b1.stop(ctx.currentTime+0.18);
+      // Boom 2 (plus sourd)
+      var b2 = ctx.createOscillator();
+      var g2 = ctx.createGain();
+      b2.type='sine'; b2.frequency.value=55;
+      g2.gain.setValueAtTime(0.5, ctx.currentTime+0.12);
+      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.32);
+      b2.connect(g2); g2.connect(ctx.destination);
+      b2.start(ctx.currentTime+0.12); b2.stop(ctx.currentTime+0.32);
+    }catch(e){}
+  }
+  function fStartHeartbeat(){
+    fHeartBPM = 55;
+    function beat(){
+      fPlayHeartbeat();
+      // Acceleration progressive : BPM monte jusqu'a 160
+      fHeartBPM = Math.min(fHeartBPM + 0.8, 160);
+      var interval = Math.round(60000 / fHeartBPM);
+      fHeartInterval = setTimeout(beat, interval);
+    }
+    beat();
+  }
+  function fStopHeartbeat(){
+    if(fHeartInterval) clearTimeout(fHeartInterval);
+    fHeartInterval = null;
+  }
+
+  /* ── Son strident (jump scare audio) ── */
+  function fPlayScream(){
+    try{
+      var ctx = fGetAudio();
+      // Bruit blanc aigu tres court
+      var bufLen = ctx.sampleRate * 0.9;
+      var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+      var d = buf.getChannelData(0);
+      for(var i=0;i<bufLen;i++){
+        // Envelope : attaque instantanee, decay rapide
+        var env = Math.pow(1 - i/bufLen, 1.5);
+        d[i] = (Math.random()*2-1) * env * 0.9;
+      }
+      var src = ctx.createBufferSource();
+      var flt = ctx.createBiquadFilter();
+      flt.type = 'highpass';
+      flt.frequency.value = 2800;
+      var gain = ctx.createGain();
+      gain.gain.value = 1.8;
+      src.buffer = buf;
+      src.connect(flt); flt.connect(gain); gain.connect(ctx.destination);
+      src.start();
+    }catch(e){}
+  }
+
   function fSpeak(text,rate=0.45,pitch=0.2,vol=0.7){
     if(!window.speechSynthesis) return;
     speechSynthesis.cancel();
@@ -1068,6 +1216,7 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     document.body.style.overflow='hidden';
 
     fStartDrone();
+    fStartHeartbeat();
     fActivateSysbar();
 
     const boot=document.getElementById('fat-boot');
@@ -1158,14 +1307,17 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     });
 
     setTimeout(()=>fPlayBreath(0.8),19500);
-    setTimeout(()=>fSpeak('je te vois'),21000);
     setTimeout(()=>fFlash(.5,150),13500);
     setTimeout(fatVoid,33000);
   }
 
   function fatVoid(){
-    fFlash(.8,200); fPlayGlitch(); fStopCam();
-    if(fDroneGain) try{fDroneGain.gain.linearRampToValueAtTime(0,fAudioCtx.currentTime+0.3);}catch(e){}
+    // Flash brutal + glitch
+    fFlash(1.0, 40); fPlayGlitch(); fStopCam();
+    // Couper TOUT le son d'un coup
+    if(fDroneGain) try{fDroneGain.gain.setValueAtTime(0, fAudioCtx.currentTime);}catch(e){}
+    fStopHeartbeat();
+
     document.getElementById('fat-terminal').style.display='none';
     document.getElementById('fatela-errline').classList.remove('on');
     document.getElementById('fatela-sysbar').classList.remove('on');
@@ -1173,47 +1325,106 @@ document.querySelectorAll(".reveal,.reveal-left").forEach(el=>obs.observe(el));
     const av=document.getElementById('fat-void');
     av.style.display='flex';
 
-    setTimeout(()=>fSpeak('je te vois',0.4,0.15,0.8),3000);
-    setTimeout(()=>{
+    // === NOIR TOTAL ET SILENCE ABSOLU pendant 3.5s ===
+    // Puis voix seule dans le noir — rien d'autre
+    setTimeout(function(){ fSpeak('je te vois', 0.38, 0.12, 1.0); }, 3500);
+
+    // Texte fantôme — très lentement, après la voix
+    setTimeout(function(){
       const vt=document.getElementById('fat-void-text');
       vt.textContent='il \u00e9tait l\u00e0\ndepuis le d\u00e9but';
-
       vt.classList.add('on');
-    },4500);
+    }, 6500);
 
-    setTimeout(fatImage,8000);
+    setTimeout(fatImage, 10000);
   }
 
   function fatImage(){
-    fFlash(.6,300); fPlayGlitch();
     document.getElementById('fat-void').style.display='none';
-    document.getElementById('fatela-cracks').classList.add('on');
 
-    const ai=document.getElementById('fat-image');
+    var ai  = document.getElementById('fat-image');
+    var bg  = document.getElementById('fat-final-bg');
+    var sil = document.getElementById('fat-sil');
+    var ft  = document.getElementById('fat-final-txt');
+
+    // Tout invisible au depart
+    sil.style.opacity='0'; sil.style.transition='none';
+    bg.style.opacity='0';  bg.style.transition='none';
     ai.style.display='flex';
 
-    setTimeout(()=>document.getElementById('fat-final-bg').style.opacity='1',500);
-    setTimeout(()=>{document.getElementById('fat-sil').style.opacity='1'; fPlayBreath(1.0);},3500);
-    setTimeout(()=>{
-      document.getElementById('fat-final-txt').classList.add('on');
-      fSpeak('il était là depuis le début',0.5,0.2,0.6);
-    },7000);
+    // Flash blanc TOTAL juste avant le choc
+    setTimeout(function(){ fFlash(1.0, 25); }, 80);
 
-    let bc=0;
-    const biv=setInterval(()=>{bc++;fPlayBreath(0.5+bc*0.05);if(bc>8)clearInterval(biv);},4000);
+    // IMAGE SURGIT D'UN COUP + son strident + coeur en panique
+    setTimeout(function(){
+      fPlayScream();
+      fHeartBPM = 155;
+      fStartHeartbeat();
 
-    // Retour au portfolio après 25s
-    setTimeout(()=>{
-      const overlay=document.getElementById('fatela-overlay');
+      // Fond + image instantanés
+      bg.style.opacity='1';
+      sil.style.opacity='1';
+
+      // Fissures au même moment
+      document.getElementById('fatela-cracks').classList.add('on');
+
+      // Phase 1 : shake TRÈS rapide (0.06s) pendant 2s
+      sil.style.animation='scareFaceFlicker 0.2s infinite, faceShakeFast 0.06s infinite';
+
+      // Phase 2 après 2s : shake lent + zoom progressif sur 18s
+      setTimeout(function(){
+        fStopHeartbeat();
+        // Reprendre battement lent qui descend
+        fHeartBPM = 90;
+        var slowDown = setInterval(function(){
+          fPlayHeartbeat();
+          fHeartBPM = Math.max(fHeartBPM - 2, 45);
+          var iv = Math.round(60000/fHeartBPM);
+          clearInterval(slowDown);
+          setTimeout(function nextBeat(){
+            fPlayHeartbeat();
+            fHeartBPM = Math.max(fHeartBPM - 1.5, 45);
+            if(fHeartBPM > 46) setTimeout(nextBeat, Math.round(60000/fHeartBPM));
+          }, iv);
+        }, 800);
+
+        sil.style.animation='scareFaceFlicker 3s infinite, faceShakeSlow 20s linear forwards';
+      }, 2000);
+
+    }, 200);
+
+    // Texte final après 7s
+    setTimeout(function(){ ft.classList.add('on'); }, 7000);
+
+    // Retour portfolio après 24s avec fade lent
+    setTimeout(function(){
+      var overlay=document.getElementById('fatela-overlay');
       overlay.style.transition='opacity 3s ease';
       overlay.style.opacity='0';
-      setTimeout(()=>{
+      setTimeout(function(){
         overlay.classList.remove('active');
         overlay.style.opacity='';
         overlay.style.transition='';
         document.body.style.overflow='';
-      },3200);
-    },25000);
+        fLeaveTraces();
+      }, 3200);
+    }, 24000);
+  }
+
+  /* ── Traces persistantes ── */
+  function fLeaveTraces(){
+    // Corrompre un mot dans la bio
+    var intro = document.querySelector('.about-intro');
+    if(intro) intro.innerHTML = intro.innerHTML.replace('je me spécialise','je me dissímule');
+    // Corrompre la date
+    document.querySelectorAll('.hbc-val,.fact-val,.f-right').forEach(function(el){
+      if(el.textContent.indexOf('2025–2027') !== -1){
+        el.innerHTML = el.innerHTML.replace('2025–2027','2025–20▇▇7');
+      }
+    });
+    // Titre nav légèrement altéré
+    var logo = document.querySelector('.nav-logo');
+    if(logo) logo.textContent = 'T.FATELȦ';
   }
 
   /* ══ DÉCLENCHEMENT : SCROLL JUSQU'EN BAS ══ */
