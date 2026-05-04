@@ -1,1025 +1,660 @@
-<!DOCTYPE html>
+bash
+
+python3 << 'PYEOF'
+import base64
+
+def b64(path, mime):
+    with open(path,'rb') as f:
+        return f"data:image/{mime};base64,{base64.b64encode(f.read()).decode()}"
+
+colas_src    = b64('/mnt/user-data/uploads/colas.jpg','jpeg')
+colas_ds_src = b64('/mnt/user-data/uploads/1777896792033_image.png','png')
+jlf_src      = b64('/mnt/user-data/uploads/JLF_Logo-removebg-preview.png','png')
+
+html = '''<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Thibault Fatela — Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
 <style>
-/* ═══ RESET & VARS ═══ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#080400;
-  --bg2:#100800;
-  --bg3:#180d00;
-  --orange:#FF6B2B;
-  --orange2:#E8490F;
-  --orange3:#FF9B6B;
-  --amber:#FFB347;
-  --cream:#FFF8F0;
-  --cream2:rgba(255,248,240,.7);
-  --cream3:rgba(255,248,240,.35);
-  --cream4:rgba(255,248,240,.12);
-  --border:rgba(255,107,43,.2);
-  --border2:rgba(255,248,240,.08);
-  --glass:rgba(255,107,43,.06);
-  --glass2:rgba(255,248,240,.04);
+  --bg:#080400;--bg2:#100800;
+  --orange:#FF6B2B;--orange2:#E8490F;--amber:#FFB347;
+  --cream:#FFF8F0;--cream2:rgba(255,248,240,.7);--cream3:rgba(255,248,240,.35);
+  --border:rgba(255,107,43,.2);--border2:rgba(255,248,240,.08);
+  --glass:rgba(255,107,43,.06);--glass2:rgba(255,248,240,.04);
   --glow:0 0 40px rgba(255,107,43,.3);
-  --glow2:0 0 60px rgba(255,107,43,.15);
-  --f-display:'Cormorant Garamond',serif;
-  --f-sans:'Syne',sans-serif;
-  --f-mono:'DM Mono',monospace;
+  --fd:'Cormorant Garamond',serif;--fs:'Syne',sans-serif;--fm:'DM Mono',monospace;
 }
-html,body{width:100%;height:100%;overflow:hidden}
-body{
-  background:var(--bg);color:var(--cream);
-  font-family:var(--f-sans);
-  -webkit-font-smoothing:antialiased;
-  cursor:none;
-  user-select:none;
-}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--cream);font-family:var(--fs);-webkit-font-smoothing:antialiased;cursor:none;user-select:none}
 
-/* ═══ CURSOR ═══ */
-#cur{position:fixed;z-index:9999;pointer-events:none;top:0;left:0;mix-blend-mode:difference}
-#cur-dot{position:absolute;width:8px;height:8px;background:var(--orange);border-radius:50%;transform:translate(-50%,-50%);transition:width .2s,height .2s}
-#cur-ring{position:absolute;width:44px;height:44px;border:1px solid rgba(255,107,43,.5);border-radius:50%;transform:translate(-50%,-50%);transition:all .15s ease}
-body.hover #cur-dot{width:4px;height:4px}
-body.hover #cur-ring{width:64px;height:64px;border-color:rgba(255,107,43,.8)}
+/* CURSOR */
+#cur{position:fixed;z-index:9999;pointer-events:none;top:0;left:0}
+#cd{position:absolute;width:8px;height:8px;background:var(--orange);border-radius:50%;transform:translate(-50%,-50%);transition:width .2s,height .2s}
+#cr{position:absolute;width:44px;height:44px;border:1px solid rgba(255,107,43,.5);border-radius:50%;transform:translate(-50%,-50%);transition:all .15s ease}
+body.hov #cd{width:4px;height:4px}
+body.hov #cr{width:60px;height:60px;border-color:var(--orange)}
 
-/* ═══ CANVAS ═══ */
+/* CANVAS */
 #c{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* ═══ NOISE TEXTURE ═══ */
-body::after{
-  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity:.4;
-}
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:8000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3rem}
+.lw{font-family:var(--fd);font-size:clamp(4rem,12vw,9rem);font-weight:300;letter-spacing:-.02em;color:var(--cream);line-height:.85;text-align:center}
+.lw em{font-style:italic;color:var(--orange)}
+.lb{width:220px;height:1px;background:rgba(255,248,240,.08);position:relative;overflow:hidden}
+.lf{position:absolute;inset:0;background:linear-gradient(90deg,var(--orange2),var(--orange),var(--amber));width:0;box-shadow:0 0 12px var(--orange);transition:width .1s}
+.ln{font-family:var(--fm);font-size:.65rem;letter-spacing:.2em;color:var(--orange);opacity:.7}
 
-/* ═══ LOADER ═══ */
-#loader{
-  position:fixed;inset:0;z-index:8000;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3rem;
-}
-.ldr-word{
-  font-family:var(--f-display);font-size:clamp(4rem,12vw,9rem);
-  font-weight:300;letter-spacing:-.02em;
-  color:var(--cream);line-height:.85;text-align:center;
-}
-.ldr-word em{font-style:italic;color:var(--orange)}
-.ldr-bar{width:220px;height:1px;background:rgba(255,248,240,.08);position:relative;overflow:hidden}
-.ldr-prog{position:absolute;inset:0;background:linear-gradient(90deg,var(--orange2),var(--orange),var(--amber));width:0;box-shadow:0 0 12px var(--orange)}
-.ldr-num{font-family:var(--f-mono);font-size:.65rem;letter-spacing:.2em;color:var(--orange);opacity:.7}
-
-/* ═══ TUTORIAL ═══ */
-#tut{
-  position:fixed;inset:0;z-index:7000;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(8,4,0,.85);
-  backdrop-filter:blur(12px);
-  opacity:0;pointer-events:none;
-}
+/* TUTORIAL */
+#tut{position:fixed;inset:0;z-index:7000;display:flex;align-items:center;justify-content:center;background:rgba(8,4,0,.88);backdrop-filter:blur(16px);opacity:0;pointer-events:none;transition:opacity .5s}
 #tut.show{opacity:1;pointer-events:all}
-.tut-box{
-  padding:4rem;
-  background:rgba(255,107,43,.07);
-  border:1px solid rgba(255,107,43,.2);
-  backdrop-filter:blur(30px);
-  display:flex;flex-direction:column;align-items:center;gap:2.5rem;
-  max-width:480px;width:90%;
-  position:relative;
-}
-.tut-box::before,.tut-box::after{
-  content:"";position:absolute;width:16px;height:16px;
-  border-color:var(--orange);border-style:solid;
-}
-.tut-box::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
-.tut-box::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
-.tut-title{font-family:var(--f-display);font-size:2.2rem;font-weight:300;text-align:center;line-height:1.1}
-.tut-title em{font-style:italic;color:var(--orange)}
-.tut-hint{display:flex;align-items:center;gap:2.5rem}
-.tut-key{
-  display:flex;flex-direction:column;align-items:center;gap:.8rem;
-  font-family:var(--f-mono);font-size:.6rem;letter-spacing:.15em;color:var(--cream3);
-}
-.key-icon{
-  width:52px;height:52px;
-  border:1px solid rgba(255,248,240,.15);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.4rem;
-  background:rgba(255,248,240,.03);
-  position:relative;overflow:hidden;
-}
-.key-icon.anim-left{animation:keyPulse 1.8s ease infinite}
-.key-icon.anim-right{animation:keyPulse 1.8s ease infinite .4s}
-@keyframes keyPulse{0%,100%{border-color:rgba(255,248,240,.15);background:rgba(255,248,240,.03)}50%{border-color:rgba(255,107,43,.5);background:rgba(255,107,43,.1);box-shadow:0 0 15px rgba(255,107,43,.2)}}
-.tut-or{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.2em;color:var(--cream3)}
-.tut-btn{
-  padding:.9rem 2.5rem;
-  background:linear-gradient(135deg,var(--orange2),var(--orange));
-  color:var(--cream);font-family:var(--f-sans);font-size:.78rem;font-weight:600;
-  letter-spacing:.1em;text-transform:uppercase;border:none;cursor:none;
-  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
-  box-shadow:0 0 30px rgba(255,107,43,.3);
-  transition:box-shadow .2s;
-}
-.tut-btn:hover{box-shadow:0 0 50px rgba(255,107,43,.5)}
+.tb{padding:3.5rem;background:rgba(255,107,43,.07);border:1px solid rgba(255,107,43,.22);backdrop-filter:blur(30px);display:flex;flex-direction:column;align-items:center;gap:2.5rem;max-width:440px;width:90%;position:relative}
+.tb::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--orange);border-left:2px solid var(--orange)}
+.tb::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--orange);border-right:2px solid var(--orange)}
+.tt{font-family:var(--fd);font-size:2.2rem;font-weight:300;text-align:center;line-height:1.1;color:var(--cream)}
+.tt em{font-style:italic;color:var(--orange)}
+.th{display:flex;align-items:center;gap:2rem}
+.tk{display:flex;flex-direction:column;align-items:center;gap:.7rem;font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;color:rgba(255,248,240,.3)}
+.ki{width:52px;height:52px;border:1px solid rgba(255,248,240,.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:rgba(255,248,240,.02)}
+.ki.al{animation:kp 1.8s ease infinite}.ki.ar{animation:kp 1.8s ease infinite .4s}
+@keyframes kp{0%,100%{border-color:rgba(255,248,240,.12);background:rgba(255,248,240,.02)}50%{border-color:rgba(255,107,43,.5);background:rgba(255,107,43,.1);box-shadow:0 0 15px rgba(255,107,43,.2)}}
+.to{font-family:var(--fm);font-size:.58rem;letter-spacing:.2em;color:rgba(255,248,240,.25)}
+.tbtn{padding:.9rem 2.5rem;background:linear-gradient(135deg,var(--orange2),var(--orange));color:var(--cream);font-family:var(--fs);font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border:none;cursor:none;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));box-shadow:0 0 30px rgba(255,107,43,.3);transition:box-shadow .2s}
+.tbtn:hover{box-shadow:0 0 50px rgba(255,107,43,.5)}
 
-/* ═══ NAV ═══ */
-#nav{
-  position:fixed;top:0;left:0;right:0;z-index:500;
-  padding:1.8rem 3rem;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.nav-logo{
-  font-family:var(--f-display);font-size:1.1rem;font-weight:400;
-  color:var(--cream);letter-spacing:.05em;
-  display:flex;align-items:center;gap:.8rem;
-}
-.nav-logo-dot{width:7px;height:7px;background:var(--orange);border-radius:50%;box-shadow:0 0 10px var(--orange);animation:breathe 2.5s ease infinite}
-@keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.5}}
-.nav-slide-count{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.2em;color:var(--cream3)}
-.nav-slide-current{color:var(--orange);font-weight:500}
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:1.6rem 3rem;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.nl{font-family:var(--fd);font-size:1.1rem;font-weight:400;color:var(--cream);display:flex;align-items:center;gap:.8rem}
+.nd{width:7px;height:7px;background:var(--orange);border-radius:50%;box-shadow:0 0 10px var(--orange);animation:breathe 2.5s ease infinite}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.4}}
+.nc{font-family:var(--fm);font-size:.62rem;letter-spacing:.2em;color:rgba(255,248,240,.35)}
+.nc span{color:var(--orange)}
 
-/* ═══ SLIDES CONTAINER ═══ */
-#slides{position:fixed;inset:0;z-index:10;perspective:1200px}
+/* SLIDES */
+#slides{position:fixed;inset:0;z-index:10}
 .slide{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;
-  transform:translateX(100%) rotateY(-8deg) scale(.96);
-  transition:none;
-  padding:6rem 3rem 5rem;
+  padding:6rem 5rem 5rem;
+  opacity:0;
+  pointer-events:none;
+  transform:translateX(100%) scale(.96);
+  will-change:transform,opacity;
 }
 .slide.active{
-  opacity:1;pointer-events:all;
-  transform:translateX(0) rotateY(0deg) scale(1);
+  opacity:1;
+  pointer-events:all;
+  transform:translateX(0) scale(1);
 }
-.slide.exit-left{
-  opacity:0;pointer-events:none;
-  transform:translateX(-60%) rotateY(8deg) scale(.92);
-}
-.slide.exit-right{
-  opacity:0;pointer-events:none;
-  transform:translateX(60%) rotateY(-8deg) scale(.92);
-}
-.slide-inner{
-  max-width:1280px;width:100%;height:100%;
-  display:flex;align-items:center;
-}
+.si{max-width:1260px;width:100%;height:100%;display:flex;align-items:center}
 
-/* ═══ SLIDE PROGRESS ═══ */
-#progress{
-  position:fixed;bottom:2.5rem;left:50%;transform:translateX(-50%);
-  z-index:500;display:flex;gap:.7rem;align-items:center;
-}
-.prog-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:rgba(255,248,240,.15);
-  transition:all .4s cubic-bezier(.16,1,.3,1);cursor:none;
-}
-.prog-dot.act{
-  background:var(--orange);width:24px;border-radius:3px;
-  box-shadow:0 0 10px var(--orange);
-}
+/* ARROWS */
+.arr{position:fixed;top:50%;transform:translateY(-50%);z-index:500;width:50px;height:50px;border:1px solid rgba(255,107,43,.2);display:flex;align-items:center;justify-content:center;cursor:none;background:rgba(255,107,43,.04);backdrop-filter:blur(10px);font-size:1.1rem;color:var(--cream2);transition:all .3s}
+.arr:hover{border-color:var(--orange);background:rgba(255,107,43,.12);box-shadow:var(--glow)}
+#al{left:1.2rem}#ar{right:1.2rem}
+.arr.off{opacity:.15;pointer-events:none}
 
-/* ═══ ARROWS ═══ */
-.arrow{
-  position:fixed;top:50%;transform:translateY(-50%);z-index:500;
-  width:52px;height:52px;
-  border:1px solid rgba(255,107,43,.2);
-  display:flex;align-items:center;justify-content:center;
-  cursor:none;
-  background:rgba(255,107,43,.05);
-  backdrop-filter:blur(10px);
-  transition:border-color .3s,background .3s,box-shadow .3s;
-  font-size:1.2rem;color:var(--cream2);
-}
-.arrow:hover{border-color:var(--orange);background:rgba(255,107,43,.12);box-shadow:var(--glow)}
-#arrow-l{left:1.5rem}
-#arrow-r{right:1.5rem}
-.arrow.disabled{opacity:.2;pointer-events:none}
+/* PROGRESS */
+#prog{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:500;display:flex;gap:.7rem;align-items:center}
+.pd{width:6px;height:6px;border-radius:50%;background:rgba(255,248,240,.12);transition:all .4s cubic-bezier(.16,1,.3,1);cursor:none}
+.pd.a{background:var(--orange);width:22px;border-radius:3px;box-shadow:0 0 8px var(--orange)}
 
-/* ═══ SLIDE LABEL ═══ */
-.slide-label{
-  font-family:var(--f-mono);font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;
-  color:rgba(255,107,43,.6);margin-bottom:1.2rem;
-  display:flex;align-items:center;gap:.8rem;
-}
-.slide-label::before{content:"";width:24px;height:1px;background:var(--orange);box-shadow:0 0 6px var(--orange)}
+/* SLIDE LABEL */
+.sl{font-family:var(--fm);font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,107,43,.55);margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem}
+.sl::before{content:"";width:24px;height:1px;background:var(--orange);box-shadow:0 0 5px var(--orange)}
 
-/* ═══ GLASS CARD ═══ */
-.glass{
-  background:rgba(255,107,43,.05);
-  backdrop-filter:blur(30px) saturate(150%);
-  -webkit-backdrop-filter:blur(30px) saturate(150%);
-  border:1px solid rgba(255,107,43,.12);
-  position:relative;overflow:hidden;
-}
-.glass::before{
-  content:"";position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,248,240,.04) 0%,transparent 60%);
-  pointer-events:none;
-}
-.glass2{
-  background:rgba(255,248,240,.03);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border:1px solid rgba(255,248,240,.06);
-}
-.glass-orange{
-  background:linear-gradient(135deg,rgba(255,107,43,.12),rgba(232,73,15,.06));
-  backdrop-filter:blur(30px);
-  border:1px solid rgba(255,107,43,.25);
-  box-shadow:0 0 40px rgba(255,107,43,.08),inset 0 1px 0 rgba(255,248,240,.06);
-}
+/* GLASS */
+.glass{background:rgba(255,107,43,.05);backdrop-filter:blur(28px);border:1px solid rgba(255,107,43,.13)}
+.glass::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,248,240,.04),transparent 55%);pointer-events:none}
+.g2{background:rgba(255,248,240,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,248,240,.07)}
+.go{background:linear-gradient(135deg,rgba(255,107,43,.13),rgba(232,73,15,.06));backdrop-filter:blur(28px);border:1px solid rgba(255,107,43,.28);box-shadow:0 0 40px rgba(255,107,43,.08)}
 
-/* ═══════════════ S1 HERO ═══════════════ */
-.s1{background:transparent}
-.s1-inner{
-  display:grid;grid-template-columns:1fr auto;
-  align-items:center;gap:4rem;width:100%;
-}
-.s1-title{
-  font-family:var(--f-display);
-  font-size:clamp(5rem,13vw,11rem);
-  line-height:.82;font-weight:300;letter-spacing:-.02em;
-}
-.s1-title .l1{display:block;color:var(--cream)}
-.s1-title .l2{
-  display:block;font-style:italic;
-  color:var(--orange);text-shadow:0 0 60px rgba(255,107,43,.4);
-}
-.s1-sub{
-  font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;
-  color:var(--cream3);margin-top:2rem;line-height:2;
-}
-.s1-sub strong{color:var(--orange);font-weight:400}
-.s1-cards{
-  display:flex;flex-direction:column;gap:1px;min-width:280px;
-}
-.s1-card{
-  padding:1.6rem 2rem;
-  transition:background .3s,border-color .3s;
-}
-.s1-card:hover{background:rgba(255,107,43,.1);border-color:rgba(255,107,43,.3)}
-.s1-cl{font-family:var(--f-mono);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,107,43,.5);margin-bottom:.4rem}
-.s1-cv{font-size:.92rem;font-weight:600;color:var(--cream)}
-.s1-arrow{
-  margin-top:3rem;display:flex;align-items:center;gap:1rem;
-  font-family:var(--f-mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cream3);
-  cursor:none;
-}
-.s1-arrow-icon{
-  width:42px;height:42px;border:1px solid rgba(255,107,43,.3);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1rem;transition:all .3s;
-}
-.s1-arrow:hover .s1-arrow-icon{border-color:var(--orange);box-shadow:var(--glow);background:rgba(255,107,43,.08)}
+/* TILT */
+.tl{transform-style:preserve-3d}
 
-/* ═══════════════ S2 PROFIL ═══════════════ */
-.s2-grid{display:grid;grid-template-columns:auto 1fr;gap:5rem;align-items:center;width:100%}
-.s2-visual{
-  width:280px;height:280px;position:relative;flex-shrink:0;
-}
-.s2-blob{
-  position:absolute;inset:0;
-  background:radial-gradient(circle at 40% 40%,rgba(255,107,43,.2),rgba(232,73,15,.08) 50%,transparent 70%);
-  border:1px solid rgba(255,107,43,.2);
-  border-radius:30% 70% 70% 30%/30% 30% 70% 70%;
-  animation:blob 8s ease infinite alternate;
-  box-shadow:0 0 60px rgba(255,107,43,.1);
-}
-@keyframes blob{
-  0%{border-radius:30% 70% 70% 30%/30% 30% 70% 70%}
-  33%{border-radius:70% 30% 30% 70%/70% 70% 30% 30%}
-  66%{border-radius:50% 50% 30% 70%/60% 40% 60% 40%}
-  100%{border-radius:30% 70% 50% 50%/40% 60% 40% 60%}
-}
-.s2-initials{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:var(--f-display);font-size:5.5rem;font-style:italic;font-weight:300;
-  color:var(--orange);text-shadow:0 0 40px rgba(255,107,43,.5);
-}
-.s2-orbit{position:absolute;inset:-40px;border:1px dashed rgba(255,107,43,.12);border-radius:50%;animation:orbit 14s linear infinite}
-.s2-orb-dot{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;background:var(--orange);border-radius:50%;box-shadow:0 0 10px var(--orange)}
-@keyframes orbit{to{transform:rotate(360deg)}}
-.s2-right{display:flex;flex-direction:column;gap:0}
-.s2-intro{font-family:var(--f-display);font-size:clamp(1.1rem,2vw,1.6rem);font-weight:300;line-height:1.7;color:var(--cream2);margin-bottom:2.5rem}
-.s2-intro em{font-style:italic;color:var(--orange)}
-.s2-facts{display:flex;flex-direction:column}
-.sf{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:.9rem 1rem;border-bottom:1px solid rgba(255,248,240,.05);
-  margin:0 -1rem;transition:background .2s;
-}
+/* LOGO IMAGES */
+.logo-img{display:block;object-fit:contain}
+.logo-colas{width:180px;filter:drop-shadow(0 4px 20px rgba(0,0,0,.5))}
+.logo-cds{width:200px;border-radius:8px;filter:drop-shadow(0 4px 20px rgba(0,0,0,.6))}
+.logo-jlf{width:160px;filter:drop-shadow(0 4px 20px rgba(0,0,0,.5))}
+
+/* ══════ S1 HERO ══════ */
+.s1i{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4rem;width:100%}
+.s1t{font-family:var(--fd);font-size:clamp(5rem,13vw,11rem);line-height:.82;font-weight:300;letter-spacing:-.02em}
+.s1t .a{display:block;color:var(--cream)}
+.s1t .b{display:block;font-style:italic;color:var(--orange);text-shadow:0 0 60px rgba(255,107,43,.35)}
+.s1s{font-family:var(--fm);font-size:.75rem;letter-spacing:.12em;color:rgba(255,248,240,.4);margin-top:2rem;line-height:2}
+.s1s strong{color:var(--orange);font-weight:400}
+.s1btn{margin-top:3rem;display:inline-flex;align-items:center;gap:1rem;font-family:var(--fm);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,248,240,.35);cursor:none}
+.s1btn-ico{width:42px;height:42px;border:1px solid rgba(255,107,43,.3);display:flex;align-items:center;justify-content:center;transition:all .3s}
+.s1btn:hover .s1btn-ico{border-color:var(--orange);box-shadow:var(--glow);background:rgba(255,107,43,.08)}
+.s1cards{display:flex;flex-direction:column;gap:1px;min-width:270px}
+.s1c{padding:1.5rem 1.8rem;position:relative;overflow:hidden;transition:all .3s}
+.s1c:hover{background:rgba(255,107,43,.1);border-color:rgba(255,107,43,.3)}
+.s1c::after{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--orange),transparent);transform:translateX(-100%);transition:transform .5s}
+.s1c:hover::after{transform:translateX(0)}
+.s1cl{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,107,43,.45);margin-bottom:.4rem}
+.s1cv{font-size:.9rem;font-weight:600;color:var(--cream)}
+
+/* ══════ S2 PROFIL ══════ */
+.s2i{display:grid;grid-template-columns:auto 1fr;gap:5rem;align-items:center;width:100%}
+.s2v{width:260px;height:260px;position:relative;flex-shrink:0}
+.s2blob{position:absolute;inset:0;background:radial-gradient(circle at 40%,rgba(255,107,43,.18),rgba(232,73,15,.07) 55%,transparent 70%);border:1px solid rgba(255,107,43,.18);border-radius:30% 70% 70% 30%/30% 30% 70% 70%;animation:blob 9s ease infinite alternate;box-shadow:0 0 50px rgba(255,107,43,.08)}
+@keyframes blob{0%{border-radius:30% 70% 70% 30%/30% 30% 70% 70%}33%{border-radius:70% 30% 30% 70%/70% 70% 30% 30%}66%{border-radius:50% 50% 30% 70%/60% 40% 60% 40%}100%{border-radius:30% 70% 50% 50%/40% 60% 40% 60%}}
+.s2init{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:5rem;font-style:italic;font-weight:300;color:var(--orange);text-shadow:0 0 40px rgba(255,107,43,.4)}
+.s2orb{position:absolute;inset:-40px;border:1px dashed rgba(255,107,43,.1);border-radius:50%;animation:orb 14s linear infinite}
+.s2od{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);width:7px;height:7px;background:var(--orange);border-radius:50%;box-shadow:0 0 8px var(--orange)}
+@keyframes orb{to{transform:rotate(360deg)}}
+.s2intro{font-family:var(--fd);font-size:clamp(1rem,1.8vw,1.45rem);font-weight:300;line-height:1.75;color:var(--cream2);margin-bottom:2.5rem}
+.s2intro em{font-style:italic;color:var(--orange)}
+.s2f{display:flex;flex-direction:column}
+.sf{display:flex;justify-content:space-between;align-items:center;padding:.85rem 1rem;border-bottom:1px solid rgba(255,248,240,.05);margin:0 -1rem;transition:background .2s}
 .sf:first-child{border-top:1px solid rgba(255,248,240,.05)}
 .sf:hover{background:rgba(255,107,43,.04)}
-.sf-k{font-family:var(--f-mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,248,240,.3)}
-.sf-v{font-size:.9rem;font-weight:600;color:var(--cream)}.sf-v span{color:var(--orange);font-weight:500}
+.sfk{font-family:var(--fm);font-size:.57rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,248,240,.28)}
+.sfv{font-size:.88rem;font-weight:600;color:var(--cream)}.sfv span{color:var(--orange)}
 
-/* ═══════════════ S3 COLAS ═══════════════ */
-.s3-layout{display:grid;grid-template-columns:1fr 1.6fr;gap:4rem;align-items:start;width:100%}
-.s3-left{}
-.s3-logo{
-  width:120px;height:120px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--f-display);font-size:1.6rem;font-weight:600;
-  color:var(--orange);text-align:center;line-height:1.2;
-  margin-bottom:2.5rem;position:relative;
-}
-.s3-logo::before,.s3-logo::after{content:"";position:absolute;width:12px;height:12px;border-color:var(--orange);border-style:solid;box-shadow:0 0 8px rgba(255,107,43,.4)}
-.s3-logo::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
-.s3-logo::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
-.s3-name{font-family:var(--f-display);font-size:clamp(2.5rem,5vw,4rem);font-weight:300;line-height:.9;margin-bottom:1.5rem}
-.s3-name em{font-style:italic;color:var(--orange)}
-.s3-body{font-size:.88rem;line-height:1.9;color:var(--cream2);font-weight:300;margin-bottom:2rem}
-.s3-body strong{color:var(--cream);font-weight:600}
-.s3-nums{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,107,43,.06);margin-top:2rem}
-.s3-num{padding:1.5rem;background:rgba(8,4,0,.5);backdrop-filter:blur(20px)}
-.s3-n{font-family:var(--f-display);font-size:2.8rem;font-weight:300;color:var(--orange);line-height:1;text-shadow:0 0 20px rgba(255,107,43,.4)}
-.s3-l{font-family:var(--f-mono);font-size:.56rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,248,240,.3);margin-top:.3rem}
-.s3-cards{display:flex;flex-direction:column;gap:1.5rem}
-.s3-card{padding:2rem 2.5rem;transition:border-color .3s,background .3s}
-.s3-card:hover{border-color:rgba(255,107,43,.25);background:rgba(255,107,43,.08)}
-.s3-ct{font-family:var(--f-sans);font-size:.92rem;font-weight:700;color:var(--cream);margin-bottom:.8rem;letter-spacing:.01em}
-.s3-ct span{color:var(--orange)}
-.s3-cd{font-size:.82rem;line-height:1.85;color:var(--cream2);font-weight:300}
-.s3-cd strong{color:var(--cream);font-weight:600}
+/* ══════ S3 COLAS DS ══════ */
+.s3i{display:grid;grid-template-columns:1fr 1.6fr;gap:4rem;align-items:start;width:100%}
+.s3name{font-family:var(--fd);font-size:clamp(2rem,4.5vw,3.8rem);font-weight:300;line-height:.9;margin:1.5rem 0}
+.s3name em{font-style:italic;color:var(--orange)}
+.s3body{font-size:.85rem;line-height:1.9;color:var(--cream2);font-weight:300}
+.s3body strong{color:var(--cream);font-weight:600}
+.s3nums{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,107,43,.06);margin-top:2rem}
+.s3num{padding:1.4rem;background:rgba(8,4,0,.5);backdrop-filter:blur(20px)}
+.s3n{font-family:var(--fd);font-size:2.5rem;font-weight:300;color:var(--orange);line-height:1;text-shadow:0 0 15px rgba(255,107,43,.35)}
+.s3l{font-family:var(--fm);font-size:.54rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,248,240,.28);margin-top:.25rem}
+.s3cards{display:flex;flex-direction:column;gap:1.5rem}
+.s3card{padding:2rem 2.5rem;position:relative;overflow:hidden;transition:all .3s}
+.s3card:hover{border-color:rgba(255,107,43,.25);background:rgba(255,107,43,.08)}
+.s3ct{font-size:.9rem;font-weight:700;color:var(--cream);margin-bottom:.7rem}
+.s3ct span{color:var(--orange)}
+.s3cd{font-size:.8rem;line-height:1.85;color:var(--cream2);font-weight:300}
+.s3cd strong{color:var(--cream);font-weight:600}
 
-/* ═══════════════ S4 MISSIONS ═══════════════ */
-.s4-layout{width:100%}
-.s4-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3rem}
-.s4-title-block{}
-.s4-bigtitle{font-family:var(--f-display);font-size:clamp(3rem,6vw,5.5rem);font-weight:300;line-height:.88}
-.s4-bigtitle em{font-style:italic;color:var(--orange)}
-.s4-meta{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.15em;color:rgba(255,248,240,.3);line-height:2;text-align:right}
-.s4-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,107,43,.06)}
-.s4-cell{
-  padding:2.5rem 2rem;background:rgba(8,4,0,.6);backdrop-filter:blur(20px);
-  border-top:2px solid transparent;
-  transition:all .3s;
-}
-.s4-cell:hover{border-top-color:var(--orange);background:rgba(255,107,43,.07)}
-.s4-n{font-family:var(--f-display);font-size:3rem;font-weight:300;color:rgba(255,107,43,.12);line-height:1;margin-bottom:.8rem;transition:color .3s}
-.s4-cell:hover .s4-n{color:rgba(255,107,43,.4)}
-.s4-t{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;color:var(--cream)}
-.s4-d{font-size:.78rem;line-height:1.8;color:var(--cream3);font-weight:300}
+/* ══════ S4 MISSIONS ══════ */
+.s4i{width:100%}
+.s4h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3rem}
+.s4big{font-family:var(--fd);font-size:clamp(2.5rem,5.5vw,5rem);font-weight:300;line-height:.88}
+.s4big em{font-style:italic;color:var(--orange)}
+.s4meta{font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;color:rgba(255,248,240,.28);line-height:2;text-align:right}
+.s4g{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,107,43,.06)}
+.s4c{padding:2.2rem 1.8rem;background:rgba(8,4,0,.65);backdrop-filter:blur(18px);border-top:2px solid transparent;transition:all .3s}
+.s4c:hover{border-top-color:var(--orange);background:rgba(255,107,43,.07)}
+.s4n{font-family:var(--fd);font-size:2.8rem;font-weight:300;color:rgba(255,107,43,.1);line-height:1;margin-bottom:.7rem;transition:color .3s}
+.s4c:hover .s4n{color:rgba(255,107,43,.35)}
+.s4t{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;color:var(--cream)}
+.s4d{font-size:.75rem;line-height:1.8;color:rgba(255,248,240,.35);font-weight:300}
 
-/* ═══════════════ S5 BOUYGUES ═══════════════ */
-.s5-layout{width:100%;display:flex;flex-direction:column;gap:3rem}
-.s5-top{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center}
-.s5-big{font-family:var(--f-display);font-size:clamp(3rem,7vw,6.5rem);font-weight:300;line-height:.85}
-.s5-big em{font-style:italic;color:var(--orange)}
-.s5-desc{font-family:var(--f-display);font-size:clamp(1rem,1.8vw,1.3rem);font-weight:300;line-height:1.75;color:var(--cream2)}
-.s5-desc strong{font-weight:600;color:var(--cream)}
-.s5-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,107,43,.08)}
-.s5-stat{
-  padding:2.5rem 2rem;background:rgba(8,4,0,.7);backdrop-filter:blur(20px);
-  text-align:center;transition:background .3s;
-}
-.s5-stat:hover{background:rgba(255,107,43,.1)}
-.s5-sn{font-family:var(--f-display);font-size:3.5rem;font-weight:300;color:var(--orange);line-height:1;text-shadow:0 0 30px rgba(255,107,43,.4)}
-.s5-sl{font-family:var(--f-mono);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,248,240,.3);margin-top:.4rem}
-.s5-branches{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5rem;margin-top:.5rem}
-.s5-branch{
-  padding:1.5rem;text-align:center;transition:all .3s;
-}
-.s5-branch:hover{background:rgba(255,107,43,.08);border-color:rgba(255,107,43,.25)}
-.s5-bi{font-size:1.5rem;margin-bottom:.6rem;display:block}
-.s5-bt{font-size:.75rem;font-weight:700;color:var(--cream);letter-spacing:.04em;margin-bottom:.3rem}
-.s5-bd{font-size:.68rem;color:var(--cream3);font-weight:300}
+/* ══════ S5 BOUYGUES ══════ */
+.s5i{width:100%;display:flex;flex-direction:column;gap:3rem}
+.s5top{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center}
+.s5big{font-family:var(--fd);font-size:clamp(2.8rem,6.5vw,6rem);font-weight:300;line-height:.85}
+.s5big em{font-style:italic;color:var(--orange)}
+.s5desc{font-family:var(--fd);font-size:clamp(.95rem,1.7vw,1.25rem);font-weight:300;line-height:1.75;color:var(--cream2)}
+.s5desc strong{font-weight:600;color:var(--cream)}
+.s5strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,107,43,.08)}
+.s5s{padding:2rem;background:rgba(8,4,0,.7);backdrop-filter:blur(18px);text-align:center;transition:background .3s}
+.s5s:hover{background:rgba(255,107,43,.1)}
+.s5sn{font-family:var(--fd);font-size:3rem;font-weight:300;color:var(--orange);line-height:1;text-shadow:0 0 20px rgba(255,107,43,.35)}
+.s5sl{font-family:var(--fm);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,248,240,.28);margin-top:.4rem}
+.s5br{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2rem}
+.s5b{padding:1.3rem;text-align:center;transition:all .3s}
+.s5b:hover{background:rgba(255,107,43,.08);border-color:rgba(255,107,43,.25)}
+.s5bi{font-size:1.4rem;margin-bottom:.5rem;display:block}
+.s5bt{font-size:.72rem;font-weight:700;color:var(--cream);letter-spacing:.03em;margin-bottom:.25rem}
+.s5bd{font-size:.65rem;color:rgba(255,248,240,.3);font-weight:300}
 
-/* ═══════════════ S6 JLF ═══════════════ */
-.s6-layout{display:grid;grid-template-columns:1fr 1fr;gap:4rem;width:100%;align-items:start}
-.s6-left{}
-.s6-badge{
-  font-family:var(--f-display);font-size:4.5rem;font-style:italic;font-weight:300;
-  width:130px;height:130px;display:flex;align-items:center;justify-content:center;
-  color:var(--orange);text-shadow:0 0 30px rgba(255,107,43,.5);
-  position:relative;margin-bottom:2.5rem;
-}
-.s6-badge::before,.s6-badge::after{content:"";position:absolute;width:12px;height:12px;border-color:var(--orange);border-style:solid}
-.s6-badge::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
-.s6-badge::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
-.s6-title{font-family:var(--f-display);font-size:clamp(2.5rem,5vw,4.5rem);font-weight:300;line-height:.88;margin-bottom:1rem}
-.s6-title em{font-style:italic;color:var(--orange)}
-.s6-tag{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.2em;color:rgba(255,248,240,.3);margin-bottom:2rem}
-.s6-desc{font-family:var(--f-display);font-size:clamp(1rem,1.8vw,1.25rem);font-weight:300;line-height:1.75;color:var(--cream2);margin-bottom:2rem}
-.s6-desc strong{font-weight:600;color:var(--cream)}
-.s6-pillars{display:flex;flex-direction:column;gap:1px}
-.s6-pill{
-  padding:1.5rem 2rem;display:flex;align-items:center;gap:1.5rem;
-  transition:background .3s,border-color .3s;
-}
-.s6-pill:hover{background:rgba(255,107,43,.08);border-color:rgba(255,107,43,.2)}
-.s6-pi{font-size:1.5rem;flex-shrink:0}
-.s6-pt{font-size:.82rem;font-weight:700;color:var(--cream);margin-bottom:.2rem;letter-spacing:.03em}
-.s6-pd{font-size:.75rem;color:var(--cream3);font-weight:300;line-height:1.6}
-.s6-right{display:flex;flex-direction:column;gap:1.5rem}
-.s6-card{padding:2.5rem;transition:all .3s}
-.s6-card:hover{border-color:rgba(255,107,43,.25);background:rgba(255,107,43,.08)}
-.s6-cl{font-family:var(--f-mono);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,107,43,.5);margin-bottom:.8rem}
-.s6-ct{font-size:1.05rem;font-weight:700;color:var(--cream);margin-bottom:.8rem}
-.s6-ct span{color:var(--orange)}
-.s6-cd{font-size:.82rem;line-height:1.85;color:var(--cream2);font-weight:300}
-.s6-cd strong{color:var(--cream);font-weight:600}
+/* ══════ S6 JLF ══════ */
+.s6i{display:grid;grid-template-columns:1fr 1fr;gap:4rem;width:100%;align-items:start}
+.s6title{font-family:var(--fd);font-size:clamp(2.2rem,4.5vw,4rem);font-weight:300;line-height:.88;margin:1.5rem 0}
+.s6title em{font-style:italic;color:var(--orange)}
+.s6tag{font-family:var(--fm);font-size:.58rem;letter-spacing:.2em;color:rgba(255,248,240,.28);margin-bottom:1.8rem}
+.s6desc{font-family:var(--fd);font-size:clamp(.95rem,1.7vw,1.2rem);font-weight:300;line-height:1.75;color:var(--cream2);margin-bottom:2rem}
+.s6desc strong{font-weight:600;color:var(--cream)}
+.s6pills{display:flex;flex-direction:column;gap:1px}
+.s6p{padding:1.3rem 1.8rem;display:flex;align-items:center;gap:1.3rem;transition:all .3s}
+.s6p:hover{background:rgba(255,107,43,.08);border-color:rgba(255,107,43,.2)}
+.s6pi{font-size:1.4rem;flex-shrink:0}
+.s6pt{font-size:.8rem;font-weight:700;color:var(--cream);margin-bottom:.2rem}
+.s6pd{font-size:.72rem;color:rgba(255,248,240,.35);line-height:1.55;font-weight:300}
+.s6r{display:flex;flex-direction:column;gap:1.5rem}
+.s6card{padding:2rem 2.2rem;position:relative;overflow:hidden;transition:all .3s}
+.s6card:hover{border-color:rgba(255,107,43,.25);background:rgba(255,107,43,.08)}
+.s6cl{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,107,43,.45);margin-bottom:.7rem}
+.s6ct{font-size:1rem;font-weight:700;color:var(--cream);margin-bottom:.7rem}
+.s6ct span{color:var(--orange)}
+.s6cd{font-size:.8rem;line-height:1.85;color:var(--cream2);font-weight:300}
 
-/* ═══════════════ S7 PROJETS ═══════════════ */
-.s7-layout{width:100%}
-.s7-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3rem}
-.s7-title{font-family:var(--f-display);font-size:clamp(3rem,6vw,5.5rem);font-weight:300;line-height:.85}
-.s7-title em{font-style:italic;color:var(--orange)}
-.s7-sub{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.15em;color:rgba(255,248,240,.3);line-height:2;text-align:right}
-.s7-list{display:flex;flex-direction:column;gap:0}
-.s7-row{
-  display:grid;grid-template-columns:60px 1fr auto auto;align-items:center;
-  gap:2rem;padding:1.5rem 1rem;
-  border-bottom:1px solid rgba(255,248,240,.04);
-  margin:0 -1rem;
-  position:relative;overflow:hidden;
-  transition:background .2s,border-color .2s;
-}
-.s7-row::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
-  background:linear-gradient(to bottom,var(--orange),var(--orange2));
-  transform:scaleY(0);transition:transform .3s;
-  box-shadow:0 0 8px var(--orange);
-}
-.s7-row:first-child{border-top:1px solid rgba(255,248,240,.04)}
-.s7-row:hover{background:rgba(255,107,43,.04)}.s7-row:hover::before{transform:scaleY(1)}
-.s7-n{font-family:var(--f-display);font-size:1.8rem;font-weight:300;color:rgba(255,107,43,.15);line-height:1;transition:color .3s}
-.s7-row:hover .s7-n{color:rgba(255,107,43,.5)}
-.s7-info h4{font-size:.9rem;font-weight:700;margin-bottom:.25rem;color:var(--cream);letter-spacing:.01em}
-.s7-info p{font-size:.74rem;color:var(--cream3);line-height:1.6;font-weight:300}
-.s7-techs{display:flex;flex-wrap:wrap;gap:.4rem}
-.s7-tech{font-family:var(--f-mono);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;padding:.28rem .7rem;border:1px solid rgba(255,107,43,.15);color:rgba(255,107,43,.5);transition:all .2s}
-.s7-row:hover .s7-tech{border-color:rgba(255,107,43,.35);color:var(--orange)}
-.s7-badge{font-family:var(--f-mono);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;padding:.35rem .9rem;border:1px solid rgba(255,248,240,.08);color:rgba(255,248,240,.25);white-space:nowrap}
+/* ══════ S7 PROJETS ══════ */
+.s7i{width:100%}
+.s7h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2.5rem}
+.s7t{font-family:var(--fd);font-size:clamp(2.5rem,5.5vw,5rem);font-weight:300;line-height:.85}
+.s7t em{font-style:italic;color:var(--orange)}
+.s7sub{font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;color:rgba(255,248,240,.28);line-height:2;text-align:right}
+.s7l{display:flex;flex-direction:column}
+.s7r{display:grid;grid-template-columns:54px 1fr auto auto;align-items:center;gap:1.8rem;padding:1.3rem 1rem;border-bottom:1px solid rgba(255,248,240,.04);margin:0 -1rem;position:relative;overflow:hidden;transition:background .2s}
+.s7r::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--orange),var(--orange2));transform:scaleY(0);transition:transform .3s;box-shadow:0 0 8px var(--orange)}
+.s7r:first-child{border-top:1px solid rgba(255,248,240,.04)}
+.s7r:hover{background:rgba(255,107,43,.04)}.s7r:hover::before{transform:scaleY(1)}
+.s7n{font-family:var(--fd);font-size:1.7rem;font-weight:300;color:rgba(255,107,43,.12);line-height:1;transition:color .3s}
+.s7r:hover .s7n{color:rgba(255,107,43,.45)}
+.s7info h4{font-size:.88rem;font-weight:700;margin-bottom:.22rem;color:var(--cream)}
+.s7info p{font-size:.72rem;color:rgba(255,248,240,.35);line-height:1.55;font-weight:300}
+.s7techs{display:flex;flex-wrap:wrap;gap:.35rem}
+.s7tech{font-family:var(--fm);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.26rem .6rem;border:1px solid rgba(255,107,43,.15);color:rgba(255,107,43,.45);transition:all .2s}
+.s7r:hover .s7tech{border-color:rgba(255,107,43,.35);color:var(--orange)}
+.s7badge{font-family:var(--fm);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .8rem;border:1px solid rgba(255,248,240,.08);color:rgba(255,248,240,.22);white-space:nowrap}
 
-/* ═══════════════ S8 CONTACT ═══════════════ */
-.s8-layout{display:grid;grid-template-columns:1fr 1fr;gap:6rem;width:100%;align-items:center}
-.s8-left{}
-.s8-big{font-family:var(--f-display);font-size:clamp(3.5rem,8vw,7.5rem);font-weight:300;line-height:.82;margin-bottom:1.5rem}
-.s8-big em{font-style:italic;color:var(--orange)}
-.s8-sub{font-size:.9rem;color:var(--cream2);line-height:1.85;font-weight:300;margin-bottom:3rem}
-.s8-links{display:flex;flex-direction:column;gap:1px}
-.s8-link{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:1.6rem 1.5rem;
-  text-decoration:none;color:inherit;
-  transition:all .3s;position:relative;overflow:hidden;
-}
-.s8-link::before{
-  content:"";position:absolute;inset:0;
-  background:linear-gradient(90deg,rgba(255,107,43,.08),transparent);
-  transform:translateX(-100%);transition:transform .4s cubic-bezier(.16,1,.3,1);
-}
-.s8-link:hover::before{transform:translateX(0)}
-.s8-link:hover{border-color:rgba(255,107,43,.25)}
-.s8-link:hover .s8-arr{transform:translate(4px,-4px);color:var(--orange)}
-.s8-ll{font-family:var(--f-mono);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,107,43,.5);display:block;margin-bottom:.3rem}
-.s8-lv{font-size:.9rem;font-weight:600;color:var(--cream)}
-.s8-arr{font-size:1.2rem;color:rgba(255,248,240,.2);transition:transform .2s,color .2s}
-.s8-right{display:flex;align-items:center;justify-content:center}
-.s8-orb{
-  width:280px;height:280px;
-  background:radial-gradient(circle,rgba(255,107,43,.15),rgba(232,73,15,.05) 50%,transparent 70%);
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  position:relative;
-}
-.s8-orb::before{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,107,43,.2);animation:pOrb 3s ease infinite}
-.s8-orb::after{content:"";position:absolute;inset:-30px;border-radius:50%;border:1px solid rgba(255,107,43,.08);animation:pOrb 3s ease .5s infinite}
-@keyframes pOrb{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.06);opacity:1}}
-.s8-symbol{font-family:var(--f-display);font-size:5.5rem;font-style:italic;font-weight:300;color:var(--orange);text-shadow:0 0 50px rgba(255,107,43,.6);animation:flt 4s ease infinite}
-@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+/* ══════ S8 CONTACT ══════ */
+.s8i{display:grid;grid-template-columns:1fr 1fr;gap:6rem;width:100%;align-items:center}
+.s8big{font-family:var(--fd);font-size:clamp(3rem,7.5vw,7rem);font-weight:300;line-height:.82;margin:1.5rem 0}
+.s8big em{font-style:italic;color:var(--orange)}
+.s8sub{font-size:.88rem;color:var(--cream2);line-height:1.85;font-weight:300;margin-bottom:2.5rem}
+.s8lks{display:flex;flex-direction:column;gap:1px}
+.s8lk{display:flex;justify-content:space-between;align-items:center;padding:1.5rem;text-decoration:none;color:inherit;position:relative;overflow:hidden;transition:all .3s}
+.s8lk::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,107,43,.08),transparent);transform:translateX(-100%);transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.s8lk:hover::before{transform:translateX(0)}
+.s8lk:hover{border-color:rgba(255,107,43,.25)}
+.s8lk:hover .s8a{transform:translate(4px,-4px);color:var(--orange)}
+.s8ll{font-family:var(--fm);font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,107,43,.45);display:block;margin-bottom:.28rem}
+.s8lv{font-size:.88rem;font-weight:600;color:var(--cream)}
+.s8a{font-size:1.2rem;color:rgba(255,248,240,.2);transition:transform .2s,color .2s}
+.s8orb{width:260px;height:260px;background:radial-gradient(circle,rgba(255,107,43,.14),rgba(232,73,15,.05) 50%,transparent 70%);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;margin:0 auto}
+.s8orb::before{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,107,43,.18);animation:porb 3s ease infinite}
+.s8orb::after{content:"";position:absolute;inset:-28px;border-radius:50%;border:1px solid rgba(255,107,43,.07);animation:porb 3s ease .5s infinite}
+@keyframes porb{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.06);opacity:1}}
+.s8sym{font-family:var(--fd);font-size:5rem;font-style:italic;font-weight:300;color:var(--orange);text-shadow:0 0 40px rgba(255,107,43,.5);animation:flt 4s ease infinite}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 
-/* ═══ TILT WRAPPER ═══ */
-.tilt{transform-style:preserve-3d;transition:transform .08s}
-
-/* ═══ RESPONSIVE ═══ */
+/* RESPONSIVE */
 @media(max-width:900px){
-  .s1-inner,.s2-grid,.s3-layout,.s5-top,.s6-layout,.s7-header,.s8-layout{grid-template-columns:1fr;gap:2rem}
-  .s1-cards,.s8-right{display:none}
-  .s2-visual{width:200px;height:200px;margin:0 auto}
-  .s4-grid,.s7-list .s7-row{grid-template-columns:1fr 1fr}
-  .s5-strip{grid-template-columns:repeat(2,1fr)}
-  .s5-branches{grid-template-columns:repeat(3,1fr)}
-  .s7-row{grid-template-columns:50px 1fr}
-  .s7-techs,.s7-badge{display:none}
+  .s1i,.s2i,.s3i,.s5top,.s6i,.s8i{grid-template-columns:1fr;gap:2rem}
+  .s1cards,.s8orb{display:none}
+  .s4g{grid-template-columns:1fr 1fr}
+  .s5strip{grid-template-columns:repeat(2,1fr)}
+  .s5br{grid-template-columns:repeat(3,1fr)}
+  .s7r{grid-template-columns:44px 1fr}.s7techs,.s7badge{display:none}
   .slide{padding:5rem 1.5rem 4rem}
-  #arrow-l{left:.8rem}#arrow-r{right:.8rem}
+  #al{left:.6rem}#ar{right:.6rem}
 }
 </style>
 </head>
 <body>
 
-<!-- CURSOR -->
-<div id="cur"><div id="cur-dot"></div><div id="cur-ring"></div></div>
-
-<!-- CANVAS -->
+<div id="cur"><div id="cd"></div><div id="cr"></div></div>
 <canvas id="c"></canvas>
 
 <!-- LOADER -->
 <div id="loader">
-  <div class="ldr-word">Thibault<br><em>Fatela</em></div>
-  <div class="ldr-bar"><div class="ldr-prog" id="lp"></div></div>
-  <div class="ldr-num" id="ln">0%</div>
+  <div class="lw">Thibault<br><em>Fatela</em></div>
+  <div class="lb"><div class="lf" id="lf"></div></div>
+  <div class="ln" id="ln">0%</div>
 </div>
 
 <!-- TUTORIAL -->
 <div id="tut">
-  <div class="tut-box">
-    <div class="tut-title">Navigue dans<br>le <em>portfolio</em></div>
-    <div class="tut-hint">
-      <div class="tut-key">
-        <div class="key-icon anim-left">←</div>
-        PRÉCÉDENT
-      </div>
-      <div class="tut-or">ou</div>
-      <div class="tut-key">
-        <div class="key-icon anim-right">→</div>
-        SUIVANT
-      </div>
+  <div class="tb">
+    <div class="tt">Navigue dans<br>le <em>portfolio</em></div>
+    <div class="th">
+      <div class="tk"><div class="ki al">←</div>PRÉCÉDENT</div>
+      <div class="to">ou</div>
+      <div class="tk"><div class="ki ar">→</div>SUIVANT</div>
     </div>
-    <div style="font-family:var(--f-mono);font-size:.58rem;letter-spacing:.15em;color:rgba(255,248,240,.25);text-align:center">CLAVIER · BOUTONS · SWIPE</div>
-    <button class="tut-btn" id="tut-ok">Commencer</button>
+    <div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.15em;color:rgba(255,248,240,.22);text-align:center">CLAVIER · BOUTONS · SWIPE MOBILE</div>
+    <button class="tbtn" id="tok">Commencer →</button>
   </div>
 </div>
 
 <!-- NAV -->
 <div id="nav">
-  <div class="nav-logo"><div class="nav-logo-dot"></div>Thibault Fatela</div>
-  <div class="nav-slide-count"><span class="nav-slide-current" id="nc">01</span> / 08</div>
+  <div class="nl"><div class="nd"></div>Thibault Fatela</div>
+  <div class="nc"><span id="nc">01</span> / 08</div>
 </div>
 
 <!-- ARROWS -->
-<div class="arrow disabled" id="arrow-l">←</div>
-<div class="arrow" id="arrow-r">→</div>
+<div class="arr off" id="al">←</div>
+<div class="arr" id="ar">→</div>
 
-<!-- PROGRESS -->
-<div id="progress">
-  <div class="prog-dot act" data-i="0"></div>
-  <div class="prog-dot" data-i="1"></div>
-  <div class="prog-dot" data-i="2"></div>
-  <div class="prog-dot" data-i="3"></div>
-  <div class="prog-dot" data-i="4"></div>
-  <div class="prog-dot" data-i="5"></div>
-  <div class="prog-dot" data-i="6"></div>
-  <div class="prog-dot" data-i="7"></div>
+<!-- DOTS -->
+<div id="prog">
+  <div class="pd a" data-i="0"></div><div class="pd" data-i="1"></div>
+  <div class="pd" data-i="2"></div><div class="pd" data-i="3"></div>
+  <div class="pd" data-i="4"></div><div class="pd" data-i="5"></div>
+  <div class="pd" data-i="6"></div><div class="pd" data-i="7"></div>
 </div>
 
-<!-- ═══════ SLIDES ═══════ -->
+<!-- ═══ SLIDES ═══ -->
 <div id="slides">
 
-  <!-- S1 : HERO -->
-  <div class="slide s1 active" data-index="0">
-    <div class="slide-inner">
-      <div class="s1-inner">
-        <div>
-          <div class="slide-label">Portfolio — BTS SIO SISR</div>
-          <h1 class="s1-title">
-            <span class="l1">Thibault</span>
-            <span class="l2">Fatela</span>
-          </h1>
-          <p class="s1-sub">
-            Technicien Réseaux & Systèmes<br>
-            <strong>Colas Digital Solutions</strong> · Groupe Bouygues<br>
-            BTS SIO Option SISR · 2025–2027
-          </p>
-          <div class="s1-arrow" id="start-btn">
-            <div class="s1-arrow-icon">→</div>
-            Découvrir le portfolio
-          </div>
-        </div>
-        <div class="s1-cards">
-          <div class="s1-card glass tilt"><div class="s1-cl">Formation</div><div class="s1-cv">BTS SIO Option SISR</div></div>
-          <div class="s1-card glass tilt"><div class="s1-cl">Entreprise</div><div class="s1-cv">Colas Digital Solutions</div></div>
-          <div class="s1-card glass tilt"><div class="s1-cl">Groupe</div><div class="s1-cv">Bouygues · CAC 40</div></div>
-          <div class="s1-card glass tilt"><div class="s1-cl">Domaine</div><div class="s1-cv">Réseaux · IT · Systèmes</div></div>
-        </div>
-      </div>
-    </div>
+<!-- S1 HERO -->
+<div class="slide active" data-i="0">
+<div class="si"><div class="s1i">
+  <div>
+    <div class="sl">Portfolio · BTS SIO SISR · 2025–2027</div>
+    <h1 class="s1t"><span class="a">Thibault</span><span class="b">Fatela</span></h1>
+    <p class="s1s">Technicien Réseaux &amp; Systèmes<br><strong>Colas Digital Solutions</strong> · Groupe Bouygues<br>BTS SIO Option SISR · 2025–2027</p>
+    <div class="s1btn" id="s1btn"><div class="s1btn-ico">→</div>Découvrir le portfolio</div>
   </div>
-
-  <!-- S2 : PROFIL -->
-  <div class="slide" data-index="1">
-    <div class="slide-inner">
-      <div class="s2-grid">
-        <div class="s2-visual">
-          <div class="s2-orbit"><div class="s2-orb-dot"></div></div>
-          <div class="s2-blob"></div>
-          <div class="s2-initials">TF</div>
-        </div>
-        <div class="s2-right">
-          <div class="slide-label">01 — Profil</div>
-          <p class="s2-intro">Étudiant en <em>BTS SIO option SISR</em>, je me spécialise dans les infrastructures réseaux et systèmes. Mon alternance chez <em>Colas Digital Solutions</em> me plonge au cœur d'un groupe international exigeant.</p>
-          <div class="s2-facts">
-            <div class="sf"><span class="sf-k">Formation</span><span class="sf-v"><span>BTS SIO SISR</span></span></div>
-            <div class="sf"><span class="sf-k">Rythme</span><span class="sf-v">Alternance</span></div>
-            <div class="sf"><span class="sf-k">Entreprise</span><span class="sf-v"><span>Colas Digital Solutions</span></span></div>
-            <div class="sf"><span class="sf-k">Groupe</span><span class="sf-v">Bouygues · CAC 40</span></div>
-            <div class="sf"><span class="sf-k">Période</span><span class="sf-v">2025 — 2027</span></div>
-            <div class="sf"><span class="sf-k">Domaine</span><span class="sf-v">Réseaux · Systèmes · IT</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="s1cards">
+    <div class="s1c glass tl"><div class="s1cl">Formation</div><div class="s1cv">BTS SIO Option SISR</div></div>
+    <div class="s1c glass tl"><div class="s1cl">Entreprise</div><div class="s1cv">Colas Digital Solutions</div></div>
+    <div class="s1c glass tl"><div class="s1cl">Groupe</div><div class="s1cv">Bouygues · CAC 40</div></div>
+    <div class="s1c glass tl"><div class="s1cl">Domaine</div><div class="s1cv">Réseaux · IT · Systèmes</div></div>
   </div>
-
-  <!-- S3 : COLAS DS -->
-  <div class="slide" data-index="2">
-    <div class="slide-inner">
-      <div class="s3-layout">
-        <div class="s3-left">
-          <div class="slide-label">02 — Alternance</div>
-          <div class="s3-logo glass-orange">COLAS<br>DS</div>
-          <div class="s3-name">Colas<br><em>Digital</em><br>Solutions</div>
-          <p class="s3-body"><strong>Colas Digital Solutions (CDS)</strong> est la filiale informatique du groupe Colas. Elle conçoit, déploie et maintient l'ensemble des solutions technologiques du groupe à l'échelle mondiale — réseaux, systèmes d'information, outils digitaux.</p>
-          <div class="s3-nums">
-            <div class="s3-num glass2"><div class="s3-n">50+</div><div class="s3-l">Pays Colas</div></div>
-            <div class="s3-num glass2"><div class="s3-n">55K+</div><div class="s3-l">Collaborateurs</div></div>
-            <div class="s3-num glass2"><div class="s3-n">IT</div><div class="s3-l">Filiale dédiée</div></div>
-            <div class="s3-num glass2"><div class="s3-n">CAC</div><div class="s3-l">Groupe Bouygues</div></div>
-          </div>
-        </div>
-        <div class="s3-cards">
-          <div class="s3-card glass">
-            <div class="s3-ct">Mon rôle : <span>Technicien Réseaux & Systèmes</span></div>
-            <p class="s3-cd">J'interviens pour <strong>déployer des solutions réseaux sur les sites opérationnels de Colas</strong> — chantiers, agences régionales, sites de production. Installation, configuration et mise en service des équipements réseau.</p>
-          </div>
-          <div class="s3-card glass">
-            <div class="s3-ct">Le groupe <span>Colas</span></div>
-            <p class="s3-cd"><strong>Colas</strong> est l'un des leaders mondiaux de la construction d'infrastructures de transport. Routes, rails, aéroports, pipelines. Présent dans plus de <strong>50 pays</strong>, le groupe réalise plusieurs dizaines de milliards d'euros de CA annuel.</p>
-          </div>
-          <div class="s3-card glass">
-            <div class="s3-ct">Contexte <span>Bouygues</span></div>
-            <p class="s3-cd">Colas est une filiale du <strong>Groupe Bouygues</strong>, conglomérat français coté au <strong>CAC 40</strong>. Construction, télécoms (Bouygues Telecom), médias (TF1) — l'un des plus grands groupes industriels de France.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- S4 : MISSIONS -->
-  <div class="slide" data-index="3">
-    <div class="slide-inner">
-      <div class="s4-layout">
-        <div class="s4-header">
-          <div class="s4-title-block">
-            <div class="slide-label">03 — Missions CDS</div>
-            <div class="s4-bigtitle">Mes <em>missions</em><br>en alternance</div>
-          </div>
-          <div class="s4-meta">Colas Digital Solutions<br>Groupe Bouygues · 2025–2027<br>Technicien Réseaux</div>
-        </div>
-        <div class="s4-grid glass2">
-          <div class="s4-cell"><div class="s4-n">01</div><div class="s4-t">Déploiement réseau</div><div class="s4-d">Installation et configuration d'équipements réseaux (switchs, routeurs, bornes Wi-Fi) sur les sites opérationnels Colas en France.</div></div>
-          <div class="s4-cell"><div class="s4-n">02</div><div class="s4-t">Mise en service</div><div class="s4-d">Vérification de connectivité, tests des équipements déployés, validation des accès et remontée d'incidents à l'équipe.</div></div>
-          <div class="s4-cell"><div class="s4-n">03</div><div class="s4-t">Documentation</div><div class="s4-d">Comptes-rendus d'intervention, schémas d'architecture réseau, documentation technique des sites et des infrastructures.</div></div>
-          <div class="s4-cell"><div class="s4-n">04</div><div class="s4-t">Support IT</div><div class="s4-d">Assistance aux collaborateurs Colas sur site pour résolution d'incidents réseau et bonne utilisation des outils IT.</div></div>
-          <div class="s4-cell"><div class="s4-n">05</div><div class="s4-t">Gestion parc IT</div><div class="s4-d">Inventaire et suivi des équipements réseaux déployés, gestion des remplacements et mises à jour sur l'ensemble des sites.</div></div>
-          <div class="s4-cell"><div class="s4-n">06</div><div class="s4-t">Coordination</div><div class="s4-d">Travail en équipe avec ingénieurs et techniciens CDS pour planifier les déploiements et assurer la continuité des services.</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- S5 : BOUYGUES -->
-  <div class="slide" data-index="4">
-    <div class="slide-inner">
-      <div class="s5-layout">
-        <div class="s5-top">
-          <div>
-            <div class="slide-label">04 — Groupe</div>
-            <div class="s5-big">Groupe<br><em>Bouygues</em><br>— CAC 40</div>
-          </div>
-          <div>
-            <p class="s5-desc">Fondé en <strong>1952</strong> par Francis Bouygues, le Groupe Bouygues est l'un des premiers groupes industriels français. Construction, télécommunications, médias — un acteur global coté au CAC 40 qui génère des dizaines de milliards d'euros de revenus chaque année. <strong>Colas</strong>, sa filiale BTP, produit à elle seule plus de <strong>14 milliards d'euros</strong> de chiffre d'affaires annuel dans plus de 50 pays.</p>
-          </div>
-        </div>
-        <div class="s5-strip">
-          <div class="s5-stat"><div class="s5-sn">1952</div><div class="s5-sl">Fondation</div></div>
-          <div class="s5-stat"><div class="s5-sn">5</div><div class="s5-sl">Branches</div></div>
-          <div class="s5-stat"><div class="s5-sn">CAC40</div><div class="s5-sl">Coté en bourse</div></div>
-          <div class="s5-stat"><div class="s5-sn">14Md€</div><div class="s5-sl">CA Colas / an</div></div>
-        </div>
-        <div class="s5-branches">
-          <div class="s5-branch glass2"><span class="s5-bi">🏗️</span><div class="s5-bt">Bouygues Construction</div><div class="s5-bd">BTP international</div></div>
-          <div class="s5-branch glass2"><span class="s5-bi">🏠</span><div class="s5-bt">Bouygues Immobilier</div><div class="s5-bd">Promotion immobilière</div></div>
-          <div class="s5-branch glass2"><span class="s5-bi">🛣️</span><div class="s5-bt">Colas</div><div class="s5-bd">Routes & infrastructures</div></div>
-          <div class="s5-branch glass2"><span class="s5-bi">📱</span><div class="s5-bt">Bouygues Telecom</div><div class="s5-bd">Télécommunications</div></div>
-          <div class="s5-branch glass2"><span class="s5-bi">📺</span><div class="s5-bt">TF1 Group</div><div class="s5-bd">Médias & audiovisuel</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- S6 : JLF -->
-  <div class="slide" data-index="5">
-    <div class="slide-inner">
-      <div class="s6-layout">
-        <div class="s6-left">
-          <div class="slide-label" style="color:rgba(255,107,43,.6)">05 — Entrepreneuriat</div>
-          <div class="s6-badge glass-orange">JLF</div>
-          <div class="s6-title">Juste<br>L'eau <em>Fraiche</em></div>
-          <div class="s6-tag">L'eau premium, livrée chez vous.</div>
-          <p class="s6-desc"><strong>JLF</strong> est une entreprise de distribution d'eau premium à domicile. Une conviction simple : <strong>tout le monde mérite une eau de qualité, sans effort.</strong></p>
-          <div class="s6-pillars">
-            <div class="s6-pill glass2"><span class="s6-pi">💧</span><div><div class="s6-pt">Eau Premium</div><p class="s6-pd">Sélection rigoureuse, pureté et goût exceptionnels.</p></div></div>
-            <div class="s6-pill glass2"><span class="s6-pi">🚚</span><div><div class="s6-pt">Livraison à domicile</div><p class="s6-pd">Rapide, fiable, directement chez vous.</p></div></div>
-            <div class="s6-pill glass2"><span class="s6-pi">⭐</span><div><div class="s6-pt">Service Client</div><p class="s6-pd">Proximité et réactivité à chaque interaction.</p></div></div>
-          </div>
-        </div>
-        <div class="s6-right">
-          <div class="s6-card glass">
-            <div class="s6-cl">L'entreprise</div>
-            <div class="s6-ct">Commerce <span>nouvelle génération</span></div>
-            <p class="s6-cd"><strong>JLF — Juste L'eau Fraiche</strong> propose une distribution d'eau premium à domicile. Une eau sélectionnée pour sa pureté, livrée directement chez le client avec un service soigné — sans contrainte de stockage ou de déplacement.</p>
-          </div>
-          <div class="s6-card glass">
-            <div class="s6-cl">Notre mission</div>
-            <div class="s6-ct">Démocratiser l'accès <span>à l'eau premium</span></div>
-            <p class="s6-cd">En combinant logistique efficace, gamme soigneusement sélectionnée et relation client de proximité, JLF s'impose comme un acteur de confiance dans la distribution d'eau haut de gamme.</p>
-          </div>
-          <div class="s6-card glass-orange" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0">
-            <div style="padding:2rem;text-align:center;border-right:1px solid rgba(255,107,43,.15)"><div class="s6-cl" style="text-align:center;margin-bottom:.5rem">Livraison</div><div style="font-family:var(--f-display);font-size:2rem;font-weight:300;color:var(--orange)">100%</div><div style="font-size:.68rem;color:var(--cream3);margin-top:.3rem">à domicile</div></div>
-            <div style="padding:2rem;text-align:center;border-right:1px solid rgba(255,107,43,.15)"><div class="s6-cl" style="text-align:center;margin-bottom:.5rem">Gamme</div><div style="font-family:var(--f-display);font-size:2rem;font-weight:300;color:var(--orange)">Prem.</div><div style="font-size:.68rem;color:var(--cream3);margin-top:.3rem">sélectionnée</div></div>
-            <div style="padding:2rem;text-align:center"><div class="s6-cl" style="text-align:center;margin-bottom:.5rem">Marque</div><div style="font-family:var(--f-display);font-size:2rem;font-style:italic;font-weight:300;color:var(--orange)">JLF</div><div style="font-size:.68rem;color:var(--cream3);margin-top:.3rem">Juste L'eau Fraiche</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- S7 : PROJETS -->
-  <div class="slide" data-index="6">
-    <div class="slide-inner">
-      <div class="s7-layout">
-        <div class="s7-header">
-          <div>
-            <div class="slide-label">06 — Réalisations</div>
-            <div class="s7-title">Projets <em>BTS</em><br>2025–2027</div>
-          </div>
-          <div class="s7-sub">BTS SIO · Option SISR<br>Projets académiques & pro<br>Mis à jour en continu</div>
-        </div>
-        <div class="s7-list">
-          <div class="s7-row"><div class="s7-n">01</div><div class="s7-info"><h4>Infrastructure Réseau d'Entreprise</h4><p>Conception et déploiement — routage, VLAN, DHCP / DNS / Active Directory.</p></div><div class="s7-techs"><span class="s7-tech">Cisco</span><span class="s7-tech">VLAN</span><span class="s7-tech">AD</span></div><div class="s7-badge">À réaliser</div></div>
-          <div class="s7-row"><div class="s7-n">02</div><div class="s7-info"><h4>Serveur Linux — Déploiement & Sécurisation</h4><p>Debian/Ubuntu · SSH · pare-feu UFW/iptables · services web.</p></div><div class="s7-techs"><span class="s7-tech">Linux</span><span class="s7-tech">Apache</span><span class="s7-tech">SSH</span></div><div class="s7-badge">À réaliser</div></div>
-          <div class="s7-row"><div class="s7-n">03</div><div class="s7-info"><h4>Supervision & Monitoring Réseau</h4><p>Solution de supervision Zabbix / Nagios · alertes en temps réel.</p></div><div class="s7-techs"><span class="s7-tech">Zabbix</span><span class="s7-tech">SNMP</span></div><div class="s7-badge">À réaliser</div></div>
-          <div class="s7-row"><div class="s7-n">04</div><div class="s7-info"><h4>Virtualisation — VMware / Hyper-V</h4><p>Déploiement de VMs, snapshots, gestion des ressources.</p></div><div class="s7-techs"><span class="s7-tech">VMware</span><span class="s7-tech">Hyper-V</span></div><div class="s7-badge">À réaliser</div></div>
-          <div class="s7-row"><div class="s7-n">05</div><div class="s7-info"><h4>Sécurisation réseau d'entreprise</h4><p>pfSense · VPN site-à-site · DMZ · audit de sécurité.</p></div><div class="s7-techs"><span class="s7-tech">pfSense</span><span class="s7-tech">VPN</span></div><div class="s7-badge">À réaliser</div></div>
-          <div class="s7-row"><div class="s7-n">06</div><div class="s7-info"><h4>Déploiement automatisé de postes</h4><p>MDT/WDS · GPO · WSUS · domaine Active Directory.</p></div><div class="s7-techs"><span class="s7-tech">MDT</span><span class="s7-tech">GPO</span></div><div class="s7-badge">À réaliser</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- S8 : CONTACT -->
-  <div class="slide" data-index="7">
-    <div class="slide-inner">
-      <div class="s8-layout">
-        <div class="s8-left">
-          <div class="slide-label">07 — Contact</div>
-          <div class="s8-big">Travaillons<br><em>ensemble.</em></div>
-          <p class="s8-sub">Étudiant en BTS SIO SISR, actuellement en alternance chez Colas Digital Solutions. N'hésitez pas à me contacter pour toute question ou opportunité.</p>
-          <div class="s8-links">
-            <a href="mailto:thibault.fatela@gmail.com" class="s8-link glass2"><div><span class="s8-ll">Email</span><span class="s8-lv">thibault.fatela@gmail.com</span></div><span class="s8-arr">↗</span></a>
-            <a href="https://linkedin.com/in/thibault-fatela" target="_blank" class="s8-link glass2"><div><span class="s8-ll">LinkedIn</span><span class="s8-lv">linkedin.com/in/thibault-fatela</span></div><span class="s8-arr">↗</span></a>
-            <a href="https://github.com/wspngg" target="_blank" class="s8-link glass2"><div><span class="s8-ll">GitHub</span><span class="s8-lv">github.com/wspngg</span></div><span class="s8-arr">↗</span></a>
-          </div>
-        </div>
-        <div class="s8-right">
-          <div class="s8-orb"><div class="s8-symbol">@</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+</div></div>
 </div>
 
-<!-- ═════════════════════════════════════════════════
-     SCRIPTS
-═════════════════════════════════════════════════ -->
+<!-- S2 PROFIL -->
+<div class="slide" data-i="1">
+<div class="si"><div class="s2i">
+  <div class="s2v">
+    <div class="s2orb"><div class="s2od"></div></div>
+    <div class="s2blob"></div>
+    <div class="s2init">TF</div>
+  </div>
+  <div>
+    <div class="sl">01 — Profil</div>
+    <p class="s2intro">Étudiant en <em>BTS SIO option SISR</em>, je me spécialise dans les infrastructures réseaux et systèmes. Mon alternance chez <em>Colas Digital Solutions</em> me plonge au cœur d'un groupe international exigeant.</p>
+    <div class="s2f">
+      <div class="sf"><span class="sfk">Formation</span><span class="sfv"><span>BTS SIO SISR</span></span></div>
+      <div class="sf"><span class="sfk">Rythme</span><span class="sfv">Alternance</span></div>
+      <div class="sf"><span class="sfk">Entreprise</span><span class="sfv"><span>Colas Digital Solutions</span></span></div>
+      <div class="sf"><span class="sfk">Groupe</span><span class="sfv">Bouygues · CAC 40</span></div>
+      <div class="sf"><span class="sfk">Période</span><span class="sfv">2025 — 2027</span></div>
+      <div class="sf"><span class="sfk">Domaine</span><span class="sfv">Réseaux · Systèmes · IT</span></div>
+    </div>
+  </div>
+</div></div>
+</div>
+
+<!-- S3 COLAS DS -->
+<div class="slide" data-i="2">
+<div class="si"><div class="s3i">
+  <div>
+    <div class="sl">02 — Alternance</div>
+    <img src="COLAS_DS_SRC" class="logo-img logo-cds" alt="Colas Digital Solutions"/>
+    <div class="s3name">Colas<br><em>Digital</em><br>Solutions</div>
+    <p class="s3body"><strong>Colas Digital Solutions (CDS)</strong> est la filiale informatique du groupe Colas. Elle conçoit, déploie et maintient toutes les solutions technologiques du groupe à l'échelle mondiale — réseaux, SI, outils digitaux.</p>
+    <div class="s3nums">
+      <div class="s3num g2"><div class="s3n">50+</div><div class="s3l">Pays Colas</div></div>
+      <div class="s3num g2"><div class="s3n">55K+</div><div class="s3l">Collaborateurs</div></div>
+      <div class="s3num g2"><div class="s3n">IT</div><div class="s3l">Filiale dédiée</div></div>
+      <div class="s3num g2"><div class="s3n">CAC</div><div class="s3l">Groupe Bouygues</div></div>
+    </div>
+  </div>
+  <div class="s3cards">
+    <div class="s3card glass"><div class="s3ct">Mon rôle : <span>Technicien Réseaux &amp; Systèmes</span></div><p class="s3cd">J'interviens pour <strong>déployer des solutions réseaux sur les sites opérationnels de Colas</strong> — chantiers, agences régionales, sites de production. Installation, configuration et mise en service terrain.</p></div>
+    <div class="s3card glass"><div class="s3ct">Le groupe <span>Colas</span></div><p class="s3cd"><strong>Colas</strong> est leader mondial de la construction d'infrastructures de transport. Routes, rails, aéroports, pipelines. Présent dans plus de <strong>50 pays</strong>, plusieurs dizaines de milliards de CA annuel.</p></div>
+    <div class="s3card glass"><div class="s3ct">Contexte <span>Bouygues</span></div><p class="s3cd">Colas est une filiale du <strong>Groupe Bouygues</strong>, conglomérat français coté au <strong>CAC 40</strong>. Construction, télécoms (Bouygues Telecom), médias (TF1) — l'un des plus grands groupes industriels de France.</p></div>
+  </div>
+</div></div>
+</div>
+
+<!-- S4 MISSIONS -->
+<div class="slide" data-i="3">
+<div class="si"><div class="s4i">
+  <div class="s4h">
+    <div>
+      <div class="sl">03 — Missions CDS</div>
+      <div class="s4big">Mes <em>missions</em><br>en alternance</div>
+    </div>
+    <div class="s4meta">Colas Digital Solutions<br>Groupe Bouygues · 2025–2027<br>Technicien Réseaux</div>
+  </div>
+  <div class="s4g">
+    <div class="s4c"><div class="s4n">01</div><div class="s4t">Déploiement réseau</div><div class="s4d">Installation et configuration d'équipements réseaux sur les sites Colas en France.</div></div>
+    <div class="s4c"><div class="s4n">02</div><div class="s4t">Mise en service</div><div class="s4d">Tests de connectivité, validation des accès et remontée d'incidents à l'équipe.</div></div>
+    <div class="s4c"><div class="s4n">03</div><div class="s4t">Documentation</div><div class="s4d">Comptes-rendus, schémas réseau, documentation technique des sites.</div></div>
+    <div class="s4c"><div class="s4n">04</div><div class="s4t">Support IT</div><div class="s4d">Assistance utilisateurs sur site et résolution d'incidents réseau.</div></div>
+    <div class="s4c"><div class="s4n">05</div><div class="s4t">Gestion parc IT</div><div class="s4d">Inventaire et suivi des équipements, gestion des remplacements et mises à jour.</div></div>
+    <div class="s4c"><div class="s4n">06</div><div class="s4t">Coordination</div><div class="s4d">Travail en équipe avec ingénieurs et techniciens CDS pour planifier les déploiements.</div></div>
+  </div>
+</div></div>
+</div>
+
+<!-- S5 BOUYGUES -->
+<div class="slide" data-i="4">
+<div class="si"><div class="s5i">
+  <div class="s5top">
+    <div>
+      <div class="sl">04 — Groupe</div>
+      <div class="s5big">Groupe<br><em>Bouygues</em><br>— CAC 40</div>
+    </div>
+    <p class="s5desc">Fondé en <strong>1952</strong> par Francis Bouygues, c'est l'un des premiers groupes industriels français. Construction, télécommunications, médias. Coté au CAC 40, il génère des dizaines de milliards d'euros de revenus. <strong>Colas</strong>, sa filiale BTP, produit à elle seule plus de <strong>14 milliards €</strong> de CA dans plus de 50 pays.</p>
+  </div>
+  <div class="s5strip">
+    <div class="s5s"><div class="s5sn">1952</div><div class="s5sl">Fondation</div></div>
+    <div class="s5s"><div class="s5sn">5</div><div class="s5sl">Branches</div></div>
+    <div class="s5s"><div class="s5sn">CAC40</div><div class="s5sl">Coté en bourse</div></div>
+    <div class="s5s"><div class="s5sn">14Md€</div><div class="s5sl">CA Colas / an</div></div>
+  </div>
+  <div class="s5br">
+    <div class="s5b g2"><span class="s5bi">🏗️</span><div class="s5bt">Bouygues Construction</div><div class="s5bd">BTP international</div></div>
+    <div class="s5b g2"><span class="s5bi">🏠</span><div class="s5bt">Bouygues Immobilier</div><div class="s5bd">Promotion immobilière</div></div>
+    <div class="s5b g2"><span class="s5bi">🛣️</span><div class="s5bt">Colas</div><div class="s5bd">Routes &amp; infrastructures</div></div>
+    <div class="s5b g2"><span class="s5bi">📱</span><div class="s5bt">Bouygues Telecom</div><div class="s5bd">Télécommunications</div></div>
+    <div class="s5b g2"><span class="s5bi">📺</span><div class="s5bt">TF1 Group</div><div class="s5bd">Médias &amp; audiovisuel</div></div>
+  </div>
+</div></div>
+</div>
+
+<!-- S6 JLF -->
+<div class="slide" data-i="5">
+<div class="si"><div class="s6i">
+  <div>
+    <div class="sl" style="color:rgba(255,107,43,.55)">05 — Entrepreneuriat</div>
+    <img src="JLF_SRC" class="logo-img logo-jlf" alt="JLF — Juste L\'eau Fraiche"/>
+    <div class="s6title">Juste<br>L'eau <em>Fraiche</em></div>
+    <div class="s6tag">L'eau premium, livrée chez vous.</div>
+    <p class="s6desc"><strong>JLF</strong> distribue de l'eau premium à domicile. Une conviction : <strong>tout le monde mérite une eau de qualité, sans effort.</strong></p>
+    <div class="s6pills">
+      <div class="s6p g2"><span class="s6pi">💧</span><div><div class="s6pt">Eau Premium</div><p class="s6pd">Sélection rigoureuse, pureté et goût exceptionnels.</p></div></div>
+      <div class="s6p g2"><span class="s6pi">🚚</span><div><div class="s6pt">Livraison à domicile</div><p class="s6pd">Rapide, fiable, directement chez vous.</p></div></div>
+      <div class="s6p g2"><span class="s6pi">⭐</span><div><div class="s6pt">Service Client</div><p class="s6pd">Proximité et réactivité à chaque interaction.</p></div></div>
+    </div>
+  </div>
+  <div class="s6r">
+    <div class="s6card glass"><div class="s6cl">L'entreprise</div><div class="s6ct">Commerce <span>nouvelle génération</span></div><p class="s6cd"><strong>JLF — Juste L'eau Fraiche</strong> propose une distribution d'eau premium à domicile. Eau sélectionnée, livrée chez le client avec un service soigné — sans contrainte de stockage ou de déplacement.</p></div>
+    <div class="s6card glass"><div class="s6cl">Notre mission</div><div class="s6ct">Démocratiser l'accès <span>à l'eau premium</span></div><p class="s6cd">Logistique efficace, gamme sélectionnée et relation client de proximité. JLF s'impose comme un acteur de confiance dans la distribution d'eau haut de gamme.</p></div>
+    <div class="s6card go" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0;position:relative;overflow:hidden">
+      <div style="padding:1.8rem;text-align:center;border-right:1px solid rgba(255,107,43,.15)"><div class="s6cl" style="text-align:center">Livraison</div><div style="font-family:var(--fd);font-size:2rem;font-weight:300;color:var(--orange)">100%</div><div style="font-size:.65rem;color:rgba(255,248,240,.3);margin-top:.25rem">à domicile</div></div>
+      <div style="padding:1.8rem;text-align:center;border-right:1px solid rgba(255,107,43,.15)"><div class="s6cl" style="text-align:center">Gamme</div><div style="font-family:var(--fd);font-size:2rem;font-weight:300;color:var(--orange)">Premium</div><div style="font-size:.65rem;color:rgba(255,248,240,.3);margin-top:.25rem">sélectionnée</div></div>
+      <div style="padding:1.8rem;text-align:center"><div class="s6cl" style="text-align:center">Marque</div><div style="font-family:var(--fd);font-size:2rem;font-style:italic;font-weight:300;color:var(--orange)">JLF</div><div style="font-size:.65rem;color:rgba(255,248,240,.3);margin-top:.25rem">Juste L'eau Fraiche</div></div>
+    </div>
+  </div>
+</div></div>
+</div>
+
+<!-- S7 PROJETS -->
+<div class="slide" data-i="6">
+<div class="si"><div class="s7i">
+  <div class="s7h">
+    <div>
+      <div class="sl">06 — Réalisations</div>
+      <div class="s7t">Projets <em>BTS</em><br>2025–2027</div>
+    </div>
+    <div class="s7sub">BTS SIO · Option SISR<br>Académiques &amp; professionnels<br>Mis à jour en continu</div>
+  </div>
+  <div class="s7l">
+    <div class="s7r"><div class="s7n">01</div><div class="s7info"><h4>Infrastructure Réseau d'Entreprise</h4><p>Routage, VLAN, DHCP / DNS / Active Directory.</p></div><div class="s7techs"><span class="s7tech">Cisco</span><span class="s7tech">VLAN</span><span class="s7tech">AD</span></div><div class="s7badge">À réaliser</div></div>
+    <div class="s7r"><div class="s7n">02</div><div class="s7info"><h4>Serveur Linux — Déploiement &amp; Sécurisation</h4><p>Debian/Ubuntu · SSH · UFW/iptables · services web.</p></div><div class="s7techs"><span class="s7tech">Linux</span><span class="s7tech">Apache</span><span class="s7tech">SSH</span></div><div class="s7badge">À réaliser</div></div>
+    <div class="s7r"><div class="s7n">03</div><div class="s7info"><h4>Supervision &amp; Monitoring Réseau</h4><p>Zabbix / Nagios · alertes temps réel · SNMP.</p></div><div class="s7techs"><span class="s7tech">Zabbix</span><span class="s7tech">SNMP</span></div><div class="s7badge">À réaliser</div></div>
+    <div class="s7r"><div class="s7n">04</div><div class="s7info"><h4>Virtualisation — VMware / Hyper-V</h4><p>Déploiement de VMs, snapshots, gestion ressources.</p></div><div class="s7techs"><span class="s7tech">VMware</span><span class="s7tech">Hyper-V</span></div><div class="s7badge">À réaliser</div></div>
+    <div class="s7r"><div class="s7n">05</div><div class="s7info"><h4>Sécurisation réseau d'entreprise</h4><p>pfSense · VPN site-à-site · DMZ · audit sécurité.</p></div><div class="s7techs"><span class="s7tech">pfSense</span><span class="s7tech">VPN</span></div><div class="s7badge">À réaliser</div></div>
+    <div class="s7r"><div class="s7n">06</div><div class="s7info"><h4>Déploiement automatisé de postes</h4><p>MDT/WDS · GPO · WSUS · Active Directory.</p></div><div class="s7techs"><span class="s7tech">MDT</span><span class="s7tech">GPO</span></div><div class="s7badge">À réaliser</div></div>
+  </div>
+</div></div>
+</div>
+
+<!-- S8 CONTACT -->
+<div class="slide" data-i="7">
+<div class="si"><div class="s8i">
+  <div>
+    <div class="sl">07 — Contact</div>
+    <div class="s8big">Travaillons<br><em>ensemble.</em></div>
+    <p class="s8sub">Étudiant en BTS SIO SISR, en alternance chez Colas Digital Solutions. N'hésitez pas à me contacter.</p>
+    <div class="s8lks">
+      <a href="mailto:thibault.fatela@gmail.com" class="s8lk g2"><div><span class="s8ll">Email</span><span class="s8lv">thibault.fatela@gmail.com</span></div><span class="s8a">↗</span></a>
+      <a href="https://linkedin.com/in/thibault-fatela" target="_blank" class="s8lk g2"><div><span class="s8ll">LinkedIn</span><span class="s8lv">linkedin.com/in/thibault-fatela</span></div><span class="s8a">↗</span></a>
+      <a href="https://github.com/wspngg" target="_blank" class="s8lk g2"><div><span class="s8ll">GitHub</span><span class="s8lv">github.com/wspngg</span></div><span class="s8a">↗</span></a>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center">
+    <div class="s8orb"><div class="s8sym">@</div></div>
+  </div>
+</div></div>
+</div>
+
+</div><!-- /slides -->
+
 <script>
-/* ── THREE.JS PARTICLES ── */
+/* ── THREE.JS ── */
 (function(){
-  const canvas=document.getElementById('c');
-  const W=window.innerWidth,H=window.innerHeight;
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setSize(W,H);
-  renderer.setClearColor(0x000000,0);
-  const scene=new THREE.Scene();
+  const cv=document.getElementById('c');
+  const W=innerWidth,H=innerHeight;
+  const rdr=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  rdr.setPixelRatio(Math.min(devicePixelRatio,2));
+  rdr.setSize(W,H);
+  rdr.setClearColor(0,0);
+  const sc=new THREE.Scene();
   const cam=new THREE.PerspectiveCamera(65,W/H,.1,200);
   cam.position.z=8;
-
-  // PARTICLES
-  const N=3000;
-  const geo=new THREE.BufferGeometry();
-  const pos=new Float32Array(N*3);
-  const col=new Float32Array(N*3);
-  const sz=new Float32Array(N);
-  const c1=new THREE.Color('#FF6B2B');
-  const c2=new THREE.Color('#E8490F');
-  const c3=new THREE.Color('#FFB347');
-  const c4=new THREE.Color('#FFF8F0');
+  const N=2500,geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(N*3),col=new Float32Array(N*3);
+  const c1=new THREE.Color('#FF6B2B'),c2=new THREE.Color('#E8490F'),c3=new THREE.Color('#FFB347'),c4=new THREE.Color('#FFF8F0');
   for(let i=0;i<N;i++){
-    // Sphere distribution
-    const theta=Math.random()*Math.PI*2;
-    const phi=Math.acos(2*Math.random()-1);
-    const r=4+Math.random()*12;
-    pos[i*3]=r*Math.sin(phi)*Math.cos(theta);
-    pos[i*3+1]=r*Math.sin(phi)*Math.sin(theta);
-    pos[i*3+2]=r*Math.cos(phi)-2;
-    const t=Math.random();
-    const cc=t<.35?c1:t<.6?c2:t<.85?c3:c4;
+    const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=4+Math.random()*12;
+    pos[i*3]=r*Math.sin(ph)*Math.cos(th);pos[i*3+1]=r*Math.sin(ph)*Math.sin(th);pos[i*3+2]=r*Math.cos(ph)-2;
+    const t=Math.random(),cc=t<.35?c1:t<.6?c2:t<.85?c3:c4;
     col[i*3]=cc.r;col[i*3+1]=cc.g;col[i*3+2]=cc.b;
-    sz[i]=Math.random()*2+.3;
   }
   geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
   geo.setAttribute('color',new THREE.BufferAttribute(col,3));
-  const mat=new THREE.PointsMaterial({size:.045,vertexColors:true,transparent:true,opacity:.8,sizeAttenuation:true});
-  const pts=new THREE.Points(geo,mat);
-  scene.add(pts);
-
-  // FLOATING RINGS
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.042,vertexColors:true,transparent:true,opacity:.75,sizeAttenuation:true}));
+  sc.add(pts);
   const rings=[];
-  const rColors=[0xFF6B2B,0xE8490F,0xFFB347];
   [3.5,5.5,7].forEach((r,i)=>{
-    const tg=new THREE.TorusGeometry(r,.006+(i*.002),4,120);
-    const tm=new THREE.MeshBasicMaterial({color:rColors[i],transparent:true,opacity:.08+(i*.02),wireframe:false});
-    const torus=new THREE.Mesh(tg,tm);
-    torus.rotation.x=Math.PI/3*i+.5;
-    torus.rotation.y=Math.PI/4*i;
-    scene.add(torus);rings.push(torus);
+    const t=new THREE.Mesh(new THREE.TorusGeometry(r,.006+i*.002,4,120),new THREE.MeshBasicMaterial({color:[0xFF6B2B,0xE8490F,0xFFB347][i],transparent:true,opacity:.07+i*.02}));
+    t.rotation.x=Math.PI/3*i+.5;t.rotation.y=Math.PI/4*i;sc.add(t);rings.push(t);
   });
-
-  // ICOSAHEDRON
-  const ig=new THREE.IcosahedronGeometry(2,1);
-  const im=new THREE.MeshBasicMaterial({color:0xFF6B2B,wireframe:true,transparent:true,opacity:.05});
-  const ico=new THREE.Mesh(ig,im);
-  ico.position.set(3,1,-2);
-  scene.add(ico);
-
-  // MOUSE
-  let mx=0,my=0;
-  document.addEventListener('mousemove',e=>{mx=(e.clientX/W-.5)*2;my=-(e.clientY/H-.5)*2;});
-
-  let cx=0,cy=0;
+  const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(2,1),new THREE.MeshBasicMaterial({color:0xFF6B2B,wireframe:true,transparent:true,opacity:.04}));
+  ico.position.set(3,1,-2);sc.add(ico);
+  let mx=0,my=0,cx=0,cy=0;
+  document.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=-(e.clientY/innerHeight-.5)*2;});
   const clk=new THREE.Clock();
   (function tick(){
     requestAnimationFrame(tick);
     const t=clk.getElapsedTime();
     cx+=(mx*.4-cx)*.03;cy+=(my*.3-cy)*.03;
-    cam.position.x=cx;cam.position.y=cy;
-    cam.lookAt(0,0,0);
+    cam.position.x=cx;cam.position.y=cy;cam.lookAt(0,0,0);
     pts.rotation.y=t*.04;pts.rotation.x=t*.02;
     rings.forEach((r,i)=>{r.rotation.z=t*(.08+i*.03);r.rotation.x=t*(.05+i*.02);});
     ico.rotation.y=t*.07;ico.rotation.x=t*.05;
-    renderer.render(scene,cam);
+    rdr.render(sc,cam);
   })();
-
-  window.addEventListener('resize',()=>{
-    const nw=window.innerWidth,nh=window.innerHeight;
-    cam.aspect=nw/nh;cam.updateProjectionMatrix();
-    renderer.setSize(nw,nh);
-  });
+  window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();rdr.setSize(innerWidth,innerHeight);});
 })();
 
 /* ── CURSOR ── */
-const curEl=document.getElementById('cur');
-const dot=document.getElementById('cur-dot');
-const ring=document.getElementById('cur-ring');
-let cx=innerWidth/2,cy=innerHeight/2,rx=cx,ry=cy;
-document.addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;});
-(function tick(){
-  rx+=(cx-rx)*.2;ry+=(cy-ry)*.2;
-  dot.style.left=cx+'px';dot.style.top=cy+'px';
-  ring.style.left=rx+'px';ring.style.top=ry+'px';
-  requestAnimationFrame(tick);
-})();
-document.querySelectorAll('a,button,.tilt,.s1-arrow,.arrow,.prog-dot,.s4-cell,.mission,.sf,.s7-row,.s8-link,.s6-pill').forEach(el=>{
-  el.addEventListener('mouseenter',()=>document.body.classList.add('hover'));
-  el.addEventListener('mouseleave',()=>document.body.classList.remove('hover'));
+const cd=document.getElementById('cd'),cr=document.getElementById('cr');
+let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function tick(){rx+=(mx-rx)*.2;ry+=(my-ry)*.2;cd.style.left=mx+'px';cd.style.top=my+'px';cr.style.left=rx+'px';cr.style.top=ry+'px';requestAnimationFrame(tick);})();
+document.querySelectorAll('a,button,.tl,.s1btn,.arr,.pd,.s4c,.s6p,.s7r,.s8lk,.s1c,.sf').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('hov'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('hov'));
 });
 
 /* ── LOADER ── */
-const lp=document.getElementById('lp'),ln=document.getElementById('ln');
+const lfEl=document.getElementById('lf'),lnEl=document.getElementById('ln');
 let pct=0;
-const stages=['INITIALISATION...','MOTEUR 3D...','CHARGEMENT SLIDES...','PRÊT'];
-let si=0;
 const iv=setInterval(()=>{
-  pct+=Math.random()*6+3;
-  if(pct>=100){pct=100;clearInterval(iv);}
-  lp.style.width=pct+'%';
-  ln.textContent=Math.floor(pct)+'%';
-  const ni=Math.floor(pct/25);
-  if(ni>si&&si<stages.length-1) si++;
-  if(pct===100){
-    setTimeout(()=>{
-      const l=document.getElementById('loader');
-      l.style.transition='opacity .7s ease';
-      l.style.opacity='0';
-      setTimeout(()=>{l.remove();showTutorial();},700);
-    },300);
-  }
+  pct+=Math.random()*6+3;if(pct>=100)pct=100;
+  lfEl.style.width=pct+'%';lnEl.textContent=Math.floor(pct)+'%';
+  if(pct>=100){clearInterval(iv);setTimeout(()=>{const l=document.getElementById('loader');l.style.transition='opacity .7s';l.style.opacity='0';setTimeout(()=>{l.remove();showTut();},700);},300);}
 },45);
 
 /* ── TUTORIAL ── */
-function showTutorial(){
-  const t=document.getElementById('tut');
-  t.classList.add('show');
-}
-document.getElementById('tut-ok').addEventListener('click',()=>{
-  const t=document.getElementById('tut');
-  t.style.transition='opacity .5s ease';
-  t.style.opacity='0';
-  setTimeout(()=>t.remove(),500);
-});
+function showTut(){const t=document.getElementById('tut');t.classList.add('show');}
+document.getElementById('tok').addEventListener('click',()=>{const t=document.getElementById('tut');t.style.transition='opacity .5s';t.style.opacity='0';setTimeout(()=>t.remove(),500);});
 
-/* ── SLIDES ENGINE ── */
+/* ── SLIDES ── */
 const slides=document.querySelectorAll('.slide');
-const dots=document.querySelectorAll('.prog-dot');
-const arrowL=document.getElementById('arrow-l');
-const arrowR=document.getElementById('arrow-r');
-const nc=document.getElementById('nc');
-let cur=0,isAnimating=false;
+const dots=document.querySelectorAll('.pd');
+const arL=document.getElementById('al'),arR=document.getElementById('ar');
+const ncEl=document.getElementById('nc');
 const NUMS=['01','02','03','04','05','06','07','08'];
+let cur=0,busy=false;
+const DUR=650;
 
-function goTo(next,dir){
-  if(isAnimating||next===cur||next<0||next>=slides.length) return;
-  isAnimating=true;
-  const prev=cur;
-  const fromSlide=slides[prev];
-  const toSlide=slides[next];
-
-  // Exit current
-  fromSlide.style.transition='opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)';
-  fromSlide.classList.add(dir>0?'exit-left':'exit-right');
-  fromSlide.classList.remove('active');
-
-  // Prepare next
-  toSlide.style.transition='none';
-  toSlide.style.transform=dir>0?'translateX(60%) rotateY(-8deg) scale(.96)':'translateX(-60%) rotateY(8deg) scale(.96)';
-  toSlide.style.opacity='0';
-  toSlide.style.pointerEvents='none';
-
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      toSlide.style.transition='opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)';
-      toSlide.classList.add('active');
-      toSlide.style.transform='translateX(0) rotateY(0deg) scale(1)';
-      toSlide.style.opacity='1';
-      toSlide.style.pointerEvents='all';
-    });
-  });
-
+function go(next,dir){
+  if(busy||next===cur||next<0||next>=slides.length)return;
+  busy=true;
+  const prev=cur,from=slides[prev],to=slides[next];
+  // Animate OUT
+  from.style.transition=`opacity ${DUR}ms cubic-bezier(.4,0,.2,1), transform ${DUR}ms cubic-bezier(.4,0,.2,1)`;
+  from.style.opacity='0';
+  from.style.transform=dir>0?'translateX(-55%) scale(.94)':'translateX(55%) scale(.94)';
+  from.style.pointerEvents='none';
+  // Prepare IN (instant, no transition)
+  to.style.transition='none';
+  to.style.opacity='0';
+  to.style.transform=dir>0?'translateX(55%) scale(.94)':'translateX(-55%) scale(.94)';
+  to.style.pointerEvents='none';
+  // Animate IN after one frame
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    to.style.transition=`opacity ${DUR}ms cubic-bezier(.4,0,.2,1), transform ${DUR}ms cubic-bezier(.4,0,.2,1)`;
+    to.style.opacity='1';
+    to.style.transform='translateX(0) scale(1)';
+    to.style.pointerEvents='all';
+  }));
   cur=next;
-  nc.textContent=NUMS[cur];
-  dots.forEach((d,i)=>{d.classList.toggle('act',i===cur);});
-  arrowL.classList.toggle('disabled',cur===0);
-  arrowR.classList.toggle('disabled',cur===slides.length-1);
-
+  ncEl.textContent=NUMS[cur];
+  dots.forEach((d,i)=>d.classList.toggle('a',i===cur));
+  arL.classList.toggle('off',cur===0);
+  arR.classList.toggle('off',cur===slides.length-1);
   setTimeout(()=>{
-    fromSlide.classList.remove('exit-left','exit-right');
-    fromSlide.style.transition='';
-    isAnimating=false;
-  },700);
+    from.style.opacity='0';from.style.transform='translateX(100%) scale(.96)';from.style.transition='none';
+    busy=false;
+  },DUR+50);
 }
 
-arrowL.addEventListener('click',()=>goTo(cur-1,-1));
-arrowR.addEventListener('click',()=>goTo(cur+1,1));
-document.getElementById('start-btn').addEventListener('click',()=>goTo(1,1));
-dots.forEach(d=>d.addEventListener('click',()=>{const i=+d.dataset.i;goTo(i,i>cur?1:-1);}));
-
-// Keyboard
+arL.addEventListener('click',()=>go(cur-1,-1));
+arR.addEventListener('click',()=>go(cur+1,1));
+document.getElementById('s1btn').addEventListener('click',()=>go(1,1));
+dots.forEach(d=>d.addEventListener('click',()=>{const i=+d.dataset.i;go(i,i>cur?1:-1);}));
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowRight'||e.key==='ArrowDown') goTo(cur+1,1);
-  if(e.key==='ArrowLeft'||e.key==='ArrowUp') goTo(cur-1,-1);
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')go(cur+1,1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(cur-1,-1);
 });
-
-// Swipe
 let tx=0;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-document.addEventListener('touchend',e=>{
-  const dx=e.changedTouches[0].clientX-tx;
-  if(Math.abs(dx)>50){dx<0?goTo(cur+1,1):goTo(cur-1,-1);}
-},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50){dx<0?go(cur+1,1):go(cur-1,-1);}},{passive:true});
 
-/* ── TILT CARDS ── */
-document.querySelectorAll('.tilt').forEach(el=>{
-  el.addEventListener('mousemove',e=>{
-    const r=el.getBoundingClientRect();
-    const x=(e.clientX-r.left)/r.width-.5;
-    const y=(e.clientY-r.top)/r.height-.5;
-    el.style.transform=`perspective(600px) rotateX(${-y*8}deg) rotateY(${x*8}deg) scale3d(1.02,1.02,1.02)`;
-  });
+/* ── TILT ── */
+document.querySelectorAll('.tl').forEach(el=>{
+  el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(600px) rotateX(${-y*7}deg) rotateY(${x*7}deg) scale3d(1.02,1.02,1.02)`;});
   el.addEventListener('mouseleave',()=>{el.style.transform='';});
 });
 </script>
 </body>
-</html>
+</html>'''
+
+html = html.replace('COLAS_DS_SRC', colas_ds_src)
+html = html.replace('JLF_SRC', jlf_src)
+
+with open('/mnt/user-data/outputs/index.html','w') as f:
+    f.write(html)
+
+print(f"Done: {len(html)} chars")
+PYEOF
+Sortie
+
+Done: 109515 chars
